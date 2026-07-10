@@ -1,0 +1,84 @@
+{
+  "name": "chanakya-chess-engine",
+  "displayName": "Chanakya (Chess Engine)",
+  "description": "Play chess inside VS Code against your own UCI engine (chess.exe) — no server, no API calls.",
+  "version": "1.0.0",
+  "publisher": "MRCodium",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization"
+  ],
+  "keywords": [
+    "chess",
+    "uci",
+    "engine",
+    "game",
+    "board"
+  ],
+  "icon": "icon.png",
+  "activationEvents": [
+    "onCommand:chanakya.openBoard"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "chanakya.openBoard",
+        "title": "Chanakya: Open Chess Board",
+        "icon": "$(circle-large-outline)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "chanakya.openBoard"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Chanakya",
+      "properties": {
+        "chanakya.enginePath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to your UCI engine executable (e.g. chess.exe). Leave empty to use the bundled engine/chess.exe."
+        },
+        "chanakya.defaultMovetimeMs": {
+          "type": "number",
+          "default": 1000,
+          "description": "Default engine thinking time per move, in milliseconds."
+        },
+        "chanakya.defaultDepth": {
+          "type": "number",
+          "default": 0,
+          "description": "Fixed search depth (0 = use movetime instead of a fixed depth)."
+        },
+        "chanakya.maxEngineInstances": {
+          "type": "number",
+          "default": 2,
+          "description": "Number of engine processes kept warm in the pool (2 lets both White-bot and Black-bot think without blocking each other)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "package": "vsce package",
+    "lint": "node --check extension.js"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^2.24.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abhijeetSinghRajput/chanakya-chess-engine.git"
+  },
+  "author": "Abhijeet Kumar (Mr. Codium)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/abhijeetSinghRajput/chanakya-chess-engine/issues"
+  },
+  "homepage": "https://github.com/abhijeetSinghRajput/chanakya-chess-engine#readme"
+}

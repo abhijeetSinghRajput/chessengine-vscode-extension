@@ -1,0 +1,8 @@
+.vscode/**
+.vscode-test/**
+.gitignore
+**/*.map
+**/.DS_Store
+node_modules/**
+*.vsix
+SETUP_GUIDE.md

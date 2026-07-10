@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src __CSP_SOURCE__ data:; media-src __CSP_SOURCE__; style-src __CSP_SOURCE__ 'unsafe-inline'; script-src 'nonce-__NONCE__';"
+    />
+    <base href="__BASE_URI__/" />
+    <title>Chanakya — Chess</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/position.css" />
+    <link rel="stylesheet" href="css/promotion-window.css" />
+    <link rel="stylesheet" href="css/mark.css" />
+    <link rel="stylesheet" href="css/history.css" />
+    <link rel="stylesheet" href="css/utils.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div id="board-layout">
+        <!-- ── Black player panel ── -->
+        <div class="player" data-color="b">
+          <div class="user">
+            <div class="left">
+              <div class="profile-photo">
+                <img src="assets/pieces/bn.webp" alt="Black" />
+              </div>
+            </div>
+            <div class="right">
+              <p class="name">Black <sup></sup></p>
+              <div class="ai-stat">
+                <div class="loader"></div>
+                <div class="time">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                  </svg>
+                  <span></span>
+                </div>
+                <div class="nodes">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 6a9 9 0 0 0-9 9V3" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" />
+                  </svg>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="control">
+            <select title="Search depth">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" />
+            </svg>
+            <div class="toggle-btn" title="Toggle AI" id="blackBot"></div>
+          </div>
+        </div>
+
+        <!-- ── Board ── -->
+        <div id="board">
+          <div class="square-layer"></div>
+          <div class="piece-layer"></div>
+          <div class="mark-layer"></div>
+
+          <div class="promotion-window white">
+            <div class="piece wq"></div>
+            <div class="piece wr"></div>
+            <div class="piece wb"></div>
+            <div class="piece wn"></div>
+          </div>
+          <div class="promotion-window black">
+            <div class="piece bq"></div>
+            <div class="piece br"></div>
+            <div class="piece bb"></div>
+            <div class="piece bn"></div>
+          </div>
+        </div>
+
+        <!-- ── White player panel ── -->
+        <div class="player" data-color="w">
+          <div class="user">
+            <div class="left">
+              <div class="profile-photo">
+                <img src="assets/pieces/wn.webp" alt="White" />
+              </div>
+            </div>
+            <div class="right">
+              <p class="name">White <sup></sup></p>
+              <div class="ai-stat">
+                <div class="time">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                  </svg>
+                  <span></span>
+                </div>
+                <div class="nodes">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 6a9 9 0 0 0-9 9V3" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" />
+                  </svg>
+                  <span></span>
+                </div>
+                <div class="loader"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="control">
+            <select title="Search depth">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" />
+            </svg>
+            <div class="toggle-btn" title="Toggle AI" id="whiteBot"></div>
+          </div>
+        </div>
+      </div>
+      <!-- /#board-layout -->
+
+      <div class="sidebar">
+        <div class="actions">
+          <button title="Export Game" class="btn share secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+          </button>
+          <button title="Load New Game" class="btn new-game secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </button>
+        </div>
+
+        <div class="history-panel">
+          <div class="history-moves"></div>
+          <div class="history-nav">
+            <button class="btn secondary flip" title="Flip board">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4" /><path d="M17 20V4" /><path d="m3 8 4-4 4 4" /><path d="M7 4v16" /></svg>
+            </button>
+            <button class="btn secondary nav-first" title="Go to start">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5" /><path d="m18 17-5-5 5-5" /></svg>
+            </button>
+            <button class="btn secondary nav-prev" title="Previous move">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+            </button>
+            <button class="btn secondary nav-next" title="Next move">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            </button>
+            <button class="btn secondary nav-last" title="Go to end">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 17 5-5-5-5" /><path d="m13 17 5-5-5-5" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="backdrop" id="backdrop">
+      <!-- ========== DIALOG: DOWNLOAD ========== -->
+      <div class="dialog download" id="dialog-download">
+        <div class="dialog-header">
+          <span class="title">PGN export</span>
+          <button class="dialog-close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+          </button>
+        </div>
+        <div class="dialog-content">
+          <div class="fen">
+            <div class="flex justify-between items-center">
+              <p>FEN</p>
+              <button class="btn icon" id="copy-fen" title="Copy Fen">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-check"><path d="M20 6 9 17l-5-5"/></svg>
+              </button>
+            </div>
+            <input type="text" readonly value="" id="fen-input" />
+          </div>
+          <div class="pgn">
+            <div class="flex justify-between items-center">
+              <p>PGN</p>
+              <button class="btn icon" id="copy-pgn" title="Copy PGN">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-check"><path d="M20 6 9 17l-5-5"/></svg>
+              </button>
+            </div>
+            <textarea id="pgn-textarea" readonly></textarea>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /></svg>
+            Download PGN
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== DIALOG: NEW GAME ========== -->
+      <div class="dialog new-game" id="dialog-newgame">
+        <div class="dialog-header">
+          <span class="title">add new game</span>
+          <button class="dialog-close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+          </button>
+        </div>
+        <div class="dialog-content">
+          <input id="upload-fen-input" type="text" placeholder="Fen" />
+          <div class="upload">
+            <textarea id="upload-pgn-input" placeholder="Paste one or upload PGN file here."></textarea>
+            <input type="file" id="file-input" accept=".pgn" style="display: none" />
+            <div id="upload-bar" style="width: 0%"></div>
+            <div class="btn secondary" id="upload-pgn-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12" /><path d="m17 8-5-5-5 5" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /></svg>
+              upload
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn secondary" id="setup-btn">set up</button>
+          <button class="btn primary" id="confirm">new game</button>
+        </div>
+      </div>
+    </div>
+    <!-- /backdrop -->
+
+    <script type="module" nonce="__NONCE__" src="core/index.js"></script>
+  </body>
+</html>

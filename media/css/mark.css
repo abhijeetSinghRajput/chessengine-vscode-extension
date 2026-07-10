@@ -1,0 +1,73 @@
+/* ── Additions / replacements for style.css ──────────────────────────────────
+   The mark-layer now holds ALL visual overlays as positioned divs:
+     .selected-highlight  — currently selected piece square
+     .last-move-highlight — the from/to of the last played move
+     .hint                — legal-move dot
+     .hint.capture        — legal-move capture ring
+
+   The mark divs use the same data-square → CSS positioning system as .piece.
+   pointer-events on the mark-layer must allow drops to pass through to
+   .square-layer for drag-and-drop to work.
+*/
+
+/* Mark layer: pointer-events auto so hint clicks work,
+   but the layer background is transparent and passes through drags */
+.mark-layer {
+  pointer-events: none;  /* layer itself: pass through */
+}
+
+/* Individual marks re-enable pointer-events where needed */
+.mark-layer .mark {
+  pointer-events: auto;
+}
+
+/* ─── Shared mark base ────────────────────────────────────────────────────── */
+.mark-layer .mark {
+  position: absolute;
+  aspect-ratio: 1;
+  width: calc(100% / 8);
+}
+
+/* ─── Selected highlight ──────────────────────────────────────────────────── */
+.mark-layer .selected-highlight {
+  background-color: var(--highlight-color);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ─── Last-move highlight ─────────────────────────────────────────────────── */
+.mark-layer .last-move-highlight {
+  background-color: var(--highlight-color);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ─── Legal-move hints ────────────────────────────────────────────────────── */
+.mark-layer .hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 4;
+}
+
+.mark-layer .hint::before {
+  content: '';
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mark-layer .hint.capture::before {
+  width: 70%;
+  height: 70%;
+  background: transparent;
+  border: 6px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+}
+
+/* ─── Remove old square-based highlights (now handled by mark-layer) ─────── */
+/* These were previously set via classList on .square — now unused: */
+/* .square.selected   → replaced by .mark-layer .selected-highlight          */
+/* .square.last-move  → replaced by .mark-layer .last-move-highlight          */

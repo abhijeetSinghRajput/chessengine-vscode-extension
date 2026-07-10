@@ -1,0 +1,143 @@
+.flipped [data-square="a1"] { transform: translate(700%, 0%); }
+.flipped [data-square="b1"] { transform: translate(600%, 0%); }
+.flipped [data-square="c1"] { transform: translate(500%, 0%); }
+.flipped [data-square="d1"] { transform: translate(400%, 0%); }
+.flipped [data-square="e1"] { transform: translate(300%, 0%); }
+.flipped [data-square="f1"] { transform: translate(200%, 0%); }
+.flipped [data-square="g1"] { transform: translate(100%, 0%); }
+.flipped [data-square="h1"] { transform: translate(0%, 0%); }
+
+.flipped [data-square="a2"] { transform: translate(700%, 100%); }
+.flipped [data-square="b2"] { transform: translate(600%, 100%); }
+.flipped [data-square="c2"] { transform: translate(500%, 100%); }
+.flipped [data-square="d2"] { transform: translate(400%, 100%); }
+.flipped [data-square="e2"] { transform: translate(300%, 100%); }
+.flipped [data-square="f2"] { transform: translate(200%, 100%); }
+.flipped [data-square="g2"] { transform: translate(100%, 100%); }
+.flipped [data-square="h2"] { transform: translate(0%, 100%); }
+
+.flipped [data-square="a3"] { transform: translate(700%, 200%); }
+.flipped [data-square="b3"] { transform: translate(600%, 200%); }
+.flipped [data-square="c3"] { transform: translate(500%, 200%); }
+.flipped [data-square="d3"] { transform: translate(400%, 200%); }
+.flipped [data-square="e3"] { transform: translate(300%, 200%); }
+.flipped [data-square="f3"] { transform: translate(200%, 200%); }
+.flipped [data-square="g3"] { transform: translate(100%, 200%); }
+.flipped [data-square="h3"] { transform: translate(0%, 200%); }
+
+.flipped [data-square="a4"] { transform: translate(700%, 300%); }
+.flipped [data-square="b4"] { transform: translate(600%, 300%); }
+.flipped [data-square="c4"] { transform: translate(500%, 300%); }
+.flipped [data-square="d4"] { transform: translate(400%, 300%); }
+.flipped [data-square="e4"] { transform: translate(300%, 300%); }
+.flipped [data-square="f4"] { transform: translate(200%, 300%); }
+.flipped [data-square="g4"] { transform: translate(100%, 300%); }
+.flipped [data-square="h4"] { transform: translate(0%, 300%); }
+
+.flipped [data-square="a5"] { transform: translate(700%, 400%); }
+.flipped [data-square="b5"] { transform: translate(600%, 400%); }
+.flipped [data-square="c5"] { transform: translate(500%, 400%); }
+.flipped [data-square="d5"] { transform: translate(400%, 400%); }
+.flipped [data-square="e5"] { transform: translate(300%, 400%); }
+.flipped [data-square="f5"] { transform: translate(200%, 400%); }
+.flipped [data-square="g5"] { transform: translate(100%, 400%); }
+.flipped [data-square="h5"] { transform: translate(0%, 400%); }
+
+.flipped [data-square="a6"] { transform: translate(700%, 500%); }
+.flipped [data-square="b6"] { transform: translate(600%, 500%); }
+.flipped [data-square="c6"] { transform: translate(500%, 500%); }
+.flipped [data-square="d6"] { transform: translate(400%, 500%); }
+.flipped [data-square="e6"] { transform: translate(300%, 500%); }
+.flipped [data-square="f6"] { transform: translate(200%, 500%); }
+.flipped [data-square="g6"] { transform: translate(100%, 500%); }
+.flipped [data-square="h6"] { transform: translate(0%, 500%); }
+
+.flipped [data-square="a7"] { transform: translate(700%, 600%); }
+.flipped [data-square="b7"] { transform: translate(600%, 600%); }
+.flipped [data-square="c7"] { transform: translate(500%, 600%); }
+.flipped [data-square="d7"] { transform: translate(400%, 600%); }
+.flipped [data-square="e7"] { transform: translate(300%, 600%); }
+.flipped [data-square="f7"] { transform: translate(200%, 600%); }
+.flipped [data-square="g7"] { transform: translate(100%, 600%); }
+.flipped [data-square="h7"] { transform: translate(0%, 600%); }
+
+.flipped [data-square="a8"] { transform: translate(700%, 700%); }
+.flipped [data-square="b8"] { transform: translate(600%, 700%); }
+.flipped [data-square="c8"] { transform: translate(500%, 700%); }
+.flipped [data-square="d8"] { transform: translate(400%, 700%); }
+.flipped [data-square="e8"] { transform: translate(300%, 700%); }
+.flipped [data-square="f8"] { transform: translate(200%, 700%); }
+.flipped [data-square="g8"] { transform: translate(100%, 700%); }
+.flipped [data-square="h8"] { transform: translate(0%, 700%); }
+
+[data-square="a1"] { transform: translate(0%, 700%); }
+[data-square="b1"] { transform: translate(100%, 700%); }
+[data-square="c1"] { transform: translate(200%, 700%); }
+[data-square="d1"] { transform: translate(300%, 700%); }
+[data-square="e1"] { transform: translate(400%, 700%); }
+[data-square="f1"] { transform: translate(500%, 700%); }
+[data-square="g1"] { transform: translate(600%, 700%); }
+[data-square="h1"] { transform: translate(700%, 700%); }
+
+[data-square="a2"] { transform: translate(0%, 600%); }
+[data-square="b2"] { transform: translate(100%, 600%); }
+[data-square="c2"] { transform: translate(200%, 600%); }
+[data-square="d2"] { transform: translate(300%, 600%); }
+[data-square="e2"] { transform: translate(400%, 600%); }
+[data-square="f2"] { transform: translate(500%, 600%); }
+[data-square="g2"] { transform: translate(600%, 600%); }
+[data-square="h2"] { transform: translate(700%, 600%); }
+
+[data-square="a3"] { transform: translate(0%, 500%); }
+[data-square="b3"] { transform: translate(100%, 500%); }
+[data-square="c3"] { transform: translate(200%, 500%); }
+[data-square="d3"] { transform: translate(300%, 500%); }
+[data-square="e3"] { transform: translate(400%, 500%); }
+[data-square="f3"] { transform: translate(500%, 500%); }
+[data-square="g3"] { transform: translate(600%, 500%); }
+[data-square="h3"] { transform: translate(700%, 500%); }
+
+[data-square="a4"] { transform: translate(0%, 400%); }
+[data-square="b4"] { transform: translate(100%, 400%); }
+[data-square="c4"] { transform: translate(200%, 400%); }
+[data-square="d4"] { transform: translate(300%, 400%); }
+[data-square="e4"] { transform: translate(400%, 400%); }
+[data-square="f4"] { transform: translate(500%, 400%); }
+[data-square="g4"] { transform: translate(600%, 400%); }
+[data-square="h4"] { transform: translate(700%, 400%); }
+
+[data-square="a5"] { transform: translate(0%, 300%); }
+[data-square="b5"] { transform: translate(100%, 300%); }
+[data-square="c5"] { transform: translate(200%, 300%); }
+[data-square="d5"] { transform: translate(300%, 300%); }
+[data-square="e5"] { transform: translate(400%, 300%); }
+[data-square="f5"] { transform: translate(500%, 300%); }
+[data-square="g5"] { transform: translate(600%, 300%); }
+[data-square="h5"] { transform: translate(700%, 300%); }
+
+[data-square="a6"] { transform: translate(0%, 200%); }
+[data-square="b6"] { transform: translate(100%, 200%); }
+[data-square="c6"] { transform: translate(200%, 200%); }
+[data-square="d6"] { transform: translate(300%, 200%); }
+[data-square="e6"] { transform: translate(400%, 200%); }
+[data-square="f6"] { transform: translate(500%, 200%); }
+[data-square="g6"] { transform: translate(600%, 200%); }
+[data-square="h6"] { transform: translate(700%, 200%); }
+
+[data-square="a7"] { transform: translate(0%, 100%); }
+[data-square="b7"] { transform: translate(100%, 100%); }
+[data-square="c7"] { transform: translate(200%, 100%); }
+[data-square="d7"] { transform: translate(300%, 100%); }
+[data-square="e7"] { transform: translate(400%, 100%); }
+[data-square="f7"] { transform: translate(500%, 100%); }
+[data-square="g7"] { transform: translate(600%, 100%); }
+[data-square="h7"] { transform: translate(700%, 100%); }
+
+[data-square="a8"] { transform: translate(0%, 0%); }
+[data-square="b8"] { transform: translate(100%, 0%); }
+[data-square="c8"] { transform: translate(200%, 0%); }
+[data-square="d8"] { transform: translate(300%, 0%); }
+[data-square="e8"] { transform: translate(400%, 0%); }
+[data-square="f8"] { transform: translate(500%, 0%); }
+[data-square="g8"] { transform: translate(600%, 0%); }
+[data-square="h8"] { transform: translate(700%, 0%); }

@@ -1,0 +1,178 @@
+/* history.css */
+
+.app {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* ─── History panel ─────────────────────────────────────────────────────────── */
+.history-panel {
+  display: flex;
+  flex-direction: column;
+  height: min(560px, 90vw, 90svh);
+  background: #1e1e1e;
+  overflow: hidden;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Scrollable move list */
+.history-moves {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #444 transparent;
+}
+
+.history-moves::-webkit-scrollbar {
+  width: 4px;
+}
+.history-moves::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 2px;
+}
+
+/* Each row: "1.  e4  e5" */
+.history-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr;
+  align-items: center;
+  min-height: 30px;
+}
+
+.history-row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.move-num {
+  color: #888;
+  font-size: 12px;
+  font-weight: 500;
+  padding-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.move-btn {
+  all: unset;
+  cursor: pointer;
+  color: #ccc;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition:
+    background 0.12s,
+    color 0.12s;
+  white-space: nowrap;
+  white-space: nowrap;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.move-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.move-btn.active {
+  background: #86b359;
+  color: #fff;
+  font-weight: 700;
+}
+
+.move-btn.placeholder {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ─── Navigation bar ────────────────────────────────────────────────────────── */
+.history-nav {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px;
+  border-top: 1px solid #2e2e2e;
+  background: #181818;
+}
+
+.nav-btn {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 5px;
+  color: #aaa;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.nav-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.nav-btn:active {
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(0.93);
+  filter: none;
+}
+
+/* Board controls row */
+.board-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────  */
+@media (max-width: 640px) {
+  .app {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .history-panel {
+    width: min(560px, 90vw);
+    height: auto;
+  }
+
+  .history-moves {
+    overflow-x: auto;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 6px;
+    align-items: start;
+    gap: 12px;
+  }
+
+  .history-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .history-row:nth-child(odd) {
+    background: transparent;
+  }
+
+  .move-num {
+    padding: 4px 2px;
+    font-size: 11px;
+  }
+}
