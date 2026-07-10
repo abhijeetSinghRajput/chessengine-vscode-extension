@@ -73,12 +73,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/abhijeetSinghRajput/chanakya-chess-engine.git"
+    "url": "git+https://github.com/abhijeetSinghRajput/chessengine-vscode-extension.git"
   },
   "author": "Abhijeet Kumar (Mr. Codium)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/abhijeetSinghRajput/chanakya-chess-engine/issues"
+    "url": "https://github.com/abhijeetSinghRajput/chessengine-vscode-extension/issues"
   },
-  "homepage": "https://github.com/abhijeetSinghRajput/chanakya-chess-engine#readme"
+  "homepage": "https://github.com/abhijeetSinghRajput/chessengine-vscode-extension#readme"
 }
