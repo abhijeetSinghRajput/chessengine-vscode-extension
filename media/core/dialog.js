@@ -13,10 +13,11 @@ import {
 } from "./history.js";
 import { updateCheckHighlight } from "./piece.js";
 import { clearAllMarks } from "./marks.js";
+import { play } from "./sound.js";
 
 // ─── DOM References ──────────────────────────────────────────────────────────
 const backdrop = document.getElementById("backdrop");
-const downloadDialog = document.getElementById("dialog-download");
+const downloadDialog = document.getElementById("dialog-export");
 const newGameDialog = document.getElementById("dialog-newgame");
 const fenInput = document.getElementById("upload-fen-input");
 const pgnInput = document.getElementById("upload-pgn-input");
@@ -25,6 +26,8 @@ const uploadBar = document.getElementById("upload-bar");
 const uploadBtn = document.getElementById("upload-pgn-btn");
 const loadGameBtn = document.getElementById("load-game");
 const newGameBtn = document.getElementById("new-game");
+const dialogNewgameTrigger = document.getElementById("dialog-newgame-trigger");
+const dialogExportTrigger = document.getElementById("dialog-export-trigger");
 
 // ─── State ──────────────────────────────────────────────────────────────────
 let activeDialog = null;
@@ -44,7 +47,7 @@ export function openDialog(dialogId) {
     dialog.classList.add("active");
     activeDialog = dialogId;
 
-    if (dialogId === "dialog-download") {
+    if (dialogId === "dialog-export") {
       updateDownloadContent();
     }
   }
@@ -77,7 +80,7 @@ function updateDownloadContent() {
     pgn = buildPGNFromHistory();
   }
 
-  const fenField = document.querySelector("#dialog-download .fen input");
+  const fenField = document.querySelector("#dialog-export .fen input");
   const pgnField = document.getElementById("pgn-textarea");
 
   if (fenField) fenField.value = fen;
@@ -227,6 +230,7 @@ function loadFEN(fen) {
     updateCheckHighlight();
     goLast();
     closeDialogs();
+    play("game-start");
     return true;
   } catch (e) {
     alert(`Invalid FEN: ${e.message}`);
@@ -340,7 +344,7 @@ export function initDialogs() {
 
   // Download button
   const downloadBtn = document.querySelector(
-    "#dialog-download .dialog-footer .btn.primary",
+    "#dialog-export .dialog-footer .btn.primary",
   );
   if (downloadBtn) {
     downloadBtn.addEventListener("click", downloadPGN);
@@ -349,7 +353,12 @@ export function initDialogs() {
   // FEN/PGN input sync
   if (fenInput) {
     fenInput.addEventListener("input", () => {
-      if (fenInput.value.trim()) {
+      const hasPgnValue = pgnInput.value.trim(); 
+      const hasFenValue = fenInput.value.trim(); 
+      
+      loadGameBtn.disabled = !hasFenValue && !hasPgnValue;
+
+      if (hasFenValue) {
         pgnInput.value = "";
       }
     });
@@ -357,7 +366,12 @@ export function initDialogs() {
 
   if (pgnInput) {
     pgnInput.addEventListener("input", () => {
-      if (pgnInput.value.trim()) {
+      const hasPgnValue = pgnInput.value.trim(); 
+      const hasFenValue = fenInput.value.trim(); 
+
+      loadGameBtn.disabled = !hasFenValue && !hasPgnValue;
+
+      if (hasPgnValue) {
         fenInput.value = "";
       }
     });
@@ -400,24 +414,18 @@ export function initDialogs() {
 
     if (e.ctrlKey && e.shiftKey && (e.key === "E" || e.key === "e")) {
       e.preventDefault();
-      openDialog("dialog-download");
+      openDialog("dialog-export");
     }
   });
 
   // Open dialogs from sidebar
-  const newGameBtn = document.querySelector(".btn.new-game");
-  if (newGameBtn) {
-    newGameBtn.addEventListener("click", () => {
-      openDialog("dialog-newgame");
-    });
-  }
+  dialogNewgameTrigger?.addEventListener("click", () => {
+    openDialog("dialog-newgame");
+  });
 
-  const shareBtn = document.querySelector(".btn.share");
-  if (shareBtn) {
-    shareBtn.addEventListener("click", () => {
-      openDialog("dialog-download");
-    });
-  }
+  dialogExportTrigger?.addEventListener("click", () => {
+    openDialog("dialog-export");
+  });
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────
