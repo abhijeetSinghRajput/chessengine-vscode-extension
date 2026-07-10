@@ -107,6 +107,7 @@ export class ChessUI {
     initPieceLayer();
 
     this._loadPosition();
+    resetHistory(game.fen());
 
     initHistory();
     this._bindBots();
@@ -131,7 +132,7 @@ export class ChessUI {
     // Update check highlight
     updateCheckHighlight();
     // Reset history
-    resetHistory();
+    resetHistory(game.fen());
   }
 
   /**
@@ -174,7 +175,7 @@ export class ChessUI {
     }
 
     if (resetHistoryFlag) {
-      resetHistory();
+      resetHistory(game.fen());
     }
 
     renderPosition(game.fen());

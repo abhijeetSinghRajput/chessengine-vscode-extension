@@ -28,6 +28,7 @@ const loadGameBtn = document.getElementById("load-game");
 const newGameBtn = document.getElementById("new-game");
 const dialogNewgameTrigger = document.getElementById("dialog-newgame-trigger");
 const dialogExportTrigger = document.getElementById("dialog-export-trigger");
+const uploadError = document.getElementById("upload-error");
 
 // ─── State ──────────────────────────────────────────────────────────────────
 let activeDialog = null;
@@ -39,6 +40,7 @@ export function openDialog(dialogId) {
   if (!backdrop) return;
 
   closeDialogs();
+  uploadError.textContent = "";
 
   backdrop.classList.add("active");
 
@@ -225,15 +227,16 @@ function loadFEN(fen) {
   try {
     game.load(fen);
     renderPosition(game.fen());
-    resetHistory();
+    resetHistory(game.fen());
     clearAllMarks();
     updateCheckHighlight();
     goLast();
     closeDialogs();
     play("game-start");
+    uploadError.textContent = "";
     return true;
   } catch (e) {
-    alert(`Invalid FEN: ${e.message}`);
+    uploadError.textContent = e.message;
     return false;
   }
 }
@@ -254,9 +257,10 @@ function loadPGN(pgn) {
     buildHistoryFromMoves(moves);
 
     closeDialogs();
+    uploadError.textContent = "";
     return true;
   } catch (e) {
-    alert(`Invalid PGN: ${e.message}`);
+    uploadError.textContent = e.message;
     return false;
   }
 }
@@ -271,7 +275,7 @@ function loadFromInput() {
   } else if (pgn) {
     return loadPGN(pgn);
   } else {
-    alert("Please enter a FEN or PGN.");
+    uploadError.textContent = "Please enter a FEN or PGN.";
     return false;
   }
 }
@@ -281,7 +285,8 @@ function loadFromInput() {
 /** Handle PGN file upload */
 function handleFileUpload(file) {
   const reader = new FileReader();
-
+  uploadError.textContent = "";
+  
   reader.onprogress = (e) => {
     if (e.lengthComputable) {
       const progress = (e.loaded / e.total) * 100;
@@ -303,7 +308,7 @@ function handleFileUpload(file) {
   };
 
   reader.onerror = () => {
-    alert("Error reading file.");
+    uploadError.textContent = "Error reading file.";
     uploadBar.style.width = "0%";
   };
 
@@ -356,6 +361,7 @@ export function initDialogs() {
     const hasFenValue = fenInput.value.trim();
 
     loadGameBtn.disabled = !hasFenValue && !hasPgnValue;
+    uploadError.textContent = "";
 
     if (hasFenValue) {
       pgnInput.value = "";
@@ -367,6 +373,7 @@ export function initDialogs() {
     const hasFenValue = fenInput.value.trim();
 
     loadGameBtn.disabled = !hasFenValue && !hasPgnValue;
+    uploadError.textContent = "";
 
     if (hasPgnValue) {
       fenInput.value = "";

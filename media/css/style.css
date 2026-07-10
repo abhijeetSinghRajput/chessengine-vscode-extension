@@ -29,6 +29,32 @@ body {
   align-items: flex-start;
 }
 
+.error {
+  font-size: 14px;
+  font-weight: normal;
+  color: #fb2c36;
+}
+
+.error:empty {
+  display: none;
+}
+
+button.play svg {
+  fill: #e2e2e2;
+}
+
+button.play .lucide-pause-icon{
+  display: none;
+}
+
+button.play.playing  .lucide-play-icon{
+  display: none;
+}
+
+button.play.playing .lucide-pause-icon{
+  display: inline-block;
+}
+
 /* App container - prevents overflow */
 .app {
   display: flex;
@@ -827,4 +853,11 @@ button:disabled {
   width: 18px;
   height: 18px;
   stroke-width: 2;
+}
+
+.move-btn.placeholder.ellipsis {
+  color: #8b8b8b;
+  font-style: normal;
+  cursor: default;
+  pointer-events: none; 
 }

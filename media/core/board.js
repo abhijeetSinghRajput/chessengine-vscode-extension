@@ -1,6 +1,6 @@
 // board.js
 import { parseFen } from "./fen.js";
-import { addPiece } from "./piece.js";
+import { addPiece, clearGuiPieces } from "./piece.js";
 
 export const domBoard = document.querySelector('#board');
 export const pieceLayer = domBoard.querySelector('#board .piece-layer')
@@ -24,6 +24,7 @@ export const initBoard = () => {
 
 export const renderPosition = (fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") => {
     document.querySelectorAll('.piece-layer .piece').forEach(piece=>piece.remove());
+    clearGuiPieces();
     const position = parseFen(fen);
     for(const sq in position){
         const piece = position[sq];
@@ -36,6 +37,6 @@ export const resetBoard = () => {
     pieceLayer.childNodes.forEach(e=>e.remove());
     markLayer.childNodes.forEach(e=>e.remove());
 
-    guiPieces = {};
+    clearGuiPieces();
     renderPosition();
 }

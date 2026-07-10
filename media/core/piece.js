@@ -7,7 +7,12 @@ import { playMoveSound, playIllegal } from "./sound.js";
 import { recordMove, isLive } from "./history.js";
 import { showGameOverDialog } from "./dialog.js";
 
-export let guiPieces = {};
+export const guiPieces = {};
+export const clearGuiPieces = () => {
+  for (const sq in guiPieces) {
+    delete guiPieces[sq];
+  }
+};
 
 // ─── Selection state ──────────────────────────────────────────────────────────
 let selectedSquare = null;
