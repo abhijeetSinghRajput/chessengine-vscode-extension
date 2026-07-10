@@ -348,65 +348,57 @@ export function initDialogs() {
   const downloadBtn = document.querySelector(
     "#dialog-export .dialog-footer .btn.primary",
   );
-  if (downloadBtn) {
-    downloadBtn.addEventListener("click", downloadPGN);
-  }
+  downloadBtn?.addEventListener("click", downloadPGN);
 
   // FEN/PGN input sync
-  if (fenInput) {
-    fenInput.addEventListener("input", () => {
-      const hasPgnValue = pgnInput.value.trim(); 
-      const hasFenValue = fenInput.value.trim(); 
-      
-      loadGameBtn.disabled = !hasFenValue && !hasPgnValue;
+  fenInput?.addEventListener("input", () => {
+    const hasPgnValue = pgnInput.value.trim();
+    const hasFenValue = fenInput.value.trim();
 
-      if (hasFenValue) {
-        pgnInput.value = "";
-      }
-    });
-  }
+    loadGameBtn.disabled = !hasFenValue && !hasPgnValue;
 
-  if (pgnInput) {
-    pgnInput.addEventListener("input", () => {
-      const hasPgnValue = pgnInput.value.trim(); 
-      const hasFenValue = fenInput.value.trim(); 
+    if (hasFenValue) {
+      pgnInput.value = "";
+    }
+  });
 
-      loadGameBtn.disabled = !hasFenValue && !hasPgnValue;
+  pgnInput?.addEventListener("input", () => {
+    const hasPgnValue = pgnInput.value.trim();
+    const hasFenValue = fenInput.value.trim();
 
-      if (hasPgnValue) {
-        fenInput.value = "";
-      }
-    });
-  }
+    loadGameBtn.disabled = !hasFenValue && !hasPgnValue;
+
+    if (hasPgnValue) {
+      fenInput.value = "";
+    }
+  });
 
   // File upload
-  if (uploadBtn) {
-    uploadBtn.addEventListener("click", () => {
-      fileInput.click();
-    });
-  }
+  uploadBtn?.addEventListener("click", () => {
+    fileInput.click();
+  });
 
-  if (fileInput) {
-    fileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        handleFileUpload(file);
-      }
-      fileInput.value = "";
-    });
-  }
+  fileInput?.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+    fileInput.value = "";
+  });
 
   // Load Game buttons
-  if (loadGameBtn) {
-    loadGameBtn.addEventListener("click", loadFromInput);
-  }
+  loadGameBtn?.addEventListener("click", loadFromInput);
 
-  if (newGameBtn) {
-    newGameBtn.addEventListener("click", () => {
-      const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  [
+    newGameBtn,
+    document.querySelector(".game-over .new-game"), 
+  ].forEach((btn) => {
+    btn?.addEventListener("click", () => {
+      const START_FEN =
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
       loadFEN(START_FEN);
     });
-  }
+  });
 
   // Keyboard shortcuts
   document.addEventListener("keydown", (e) => {
@@ -428,9 +420,49 @@ export function initDialogs() {
   dialogExportTrigger?.addEventListener("click", () => {
     openDialog("dialog-export");
   });
+
+  document
+    .querySelector(".game-over .export")
+    ?.addEventListener("click", () => {
+      openDialog("dialog-export");
+    });
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────
+
+export function showGameOverDialog(move) {
+  const uiTitle = document.querySelector(".game-over .title");
+  const uiSubTitle = document.querySelector(".game-over .subtitle");
+  const whitePlayer = document.querySelector(".game-over .player.white");
+  const blackPlayer = document.querySelector(".game-over .player.black");
+
+  // Clear previous winner state
+  whitePlayer?.classList.remove("winner");
+  blackPlayer?.classList.remove("winner");
+
+  let title = "Draw";
+  let reason = "Game over";
+
+  if (game.isCheckmate()) {
+    const winner = move.color === "w" ? "white" : "black";
+
+    title = `${winner} won`;
+    reason = "Checkmate";
+
+    if (winner === "white") {
+      whitePlayer?.classList.add("winner");
+    } else {
+      blackPlayer?.classList.add("winner");
+    }
+  } else if (game.isStalemate()) reason = "stalemate";
+  else if (game.isThreefoldRepetition()) reason = "threefold repetition";
+  else if (game.isInsufficientMaterial()) reason = "insufficient material";
+  else if (game.isDraw()) reason = "50-move rule";
+
+  uiTitle.textContent = title;
+  uiSubTitle.textContent = reason;
+  openDialog("dialog-gameover");
+}
 
 export default {
   openDialog,

@@ -54,6 +54,7 @@ import { BotController } from "./bot.js";
 import { clearAllMarks } from "./marks.js";
 import { updateCheckHighlight } from "./piece.js";
 import { notifyNewGame } from "./engine.js";
+import { showGameOverDialog } from "./dialog.js";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -198,20 +199,7 @@ export class ChessUI {
     if (game.isGameOver()) {
       this._bots.w.enabled = false;
       this._bots.b.enabled = false;
-      document.querySelector("#whiteBot")?.classList.remove("active");
-      document.querySelector("#blackBot")?.classList.remove("active");
-
-      let reason = "Game over";
-      if (game.isCheckmate())
-        reason = `Checkmate — ${move.color === "w" ? "White" : "Black"} wins`;
-      else if (game.isStalemate()) reason = "Draw — stalemate";
-      else if (game.isThreefoldRepetition())
-        reason = "Draw — threefold repetition";
-      else if (game.isInsufficientMaterial())
-        reason = "Draw — insufficient material";
-      else if (game.isDraw()) reason = "Draw — 50-move rule";
-
-      setTimeout(() => alert(reason), 50);
+      showGameOverDialog(move);
     }
 
     return move;
@@ -220,7 +208,7 @@ export class ChessUI {
   /** Trigger bots to check if it's their turn */
   async _triggerBots() {
     if (game.isGameOver()) return;
-    
+
     // Small delay to ensure the move is fully processed
     await new Promise((resolve) => setTimeout(resolve, 10));
 

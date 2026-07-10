@@ -93,7 +93,7 @@
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 8px;
   padding: 6px;
   border-top: 1px solid #2e2e2e;
   background: #181818;

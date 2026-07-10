@@ -5,6 +5,7 @@ import { showHints, clearMarks, setSelectedMark, setLastMoveMark } from "./marks
 import { askPromotion } from "./promotion.js";
 import { playMoveSound, playIllegal } from "./sound.js";
 import { recordMove, isLive } from "./history.js";
+import { showGameOverDialog } from "./dialog.js";
 
 export let guiPieces = {};
 
@@ -124,6 +125,10 @@ export const executeMove = async (from, to, promotion) => {
   playMoveSound(move, game, move.color);
 
   recordMove(move);
+
+  if(game.isGameOver()){
+    showGameOverDialog(move);
+  }
 
   return move;
 };
