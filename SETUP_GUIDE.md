@@ -13,7 +13,7 @@ where.
 chanakya-chess-engine/
 ├─ package.json          ← extension manifest (commands, settings)
 ├─ extension.js           ← host entry point (spawns engine, owns webview)
-├─ icon.png                ← placeholder marketplace icon — replace it
+├─ icon.svg                ← placeholder marketplace icon — replace it
 ├─ engine/
 │   ├─ UCIEngine.js        ← spawns + talks UCI to one engine process
 │   ├─ EnginePool.js       ← manages one engine per bot color
@@ -84,7 +84,7 @@ real assets (they're harmless if left in, just clutter).
 
 ## 4. Replace the icon (optional but recommended)
 
-`icon.png` at the project root is a generated placeholder (checkerboard +
+`icon.svg` at the project root is a generated placeholder (checkerboard +
 "C" monogram). Replace it with a real 128×128 (or larger, square) PNG before
 publishing. It's referenced from `package.json`'s `"icon"` field.
 
@@ -192,6 +192,6 @@ Two smaller adaptations, both forced by the webview sandbox:
 - [ ] `engine/chess.exe` (or `chess` + executable bit) added
 - [ ] 12 piece `.webp` files added to `media/assets/pieces/`
 - [ ] 12 sound `.mp3` files added to `media/assets/sounds/`
-- [ ] `icon.png` replaced with a real icon (optional)
+- [ ] `icon.svg` replaced with a real icon (optional)
 - [ ] `F5` launch works, board renders, bot toggle produces a move
 - [ ] `vsce package` succeeds and the `.vsix` installs cleanly

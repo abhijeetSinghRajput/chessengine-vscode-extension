@@ -57,8 +57,8 @@ body {
 
 #board {
   aspect-ratio: 1 / 1;
-  width: min(560px, calc(100vh - 130px), calc(100vw - 300px));
-  height: min(560px, calc(100vh - 130px), calc(100vw - 300px));
+  width: min(560px, calc(100vh - 130px), calc(100vw - 250px));
+  height: min(560px, calc(100vh - 130px), calc(100vw - 250px));
   max-height: max-content;
   max-width: 100%;
   position: relative;
@@ -129,12 +129,12 @@ button:active {
   filter: brightness(0.8);
 }
 
-.sidebar{
+.sidebar {
   border-radius: 6px;
   overflow: hidden;
-  min-width: 300px;
+  min-width: 250px;
 }
-.actions{
+.actions {
   display: flex;
   gap: 5px;
   padding: 6px;
@@ -542,7 +542,6 @@ select {
   flex: 0 1 auto;
 }
 
-
 /* ── small overrides for download dialog (readonly) ── */
 .dialog.download .fen input {
   font-size: 14px;
@@ -559,6 +558,10 @@ select {
 
 /* ── responsive ── */
 @media (max-width: 720px) {
+  .sidebar {
+    width: min(560px, calc(100vh - 130px), 90vw);
+  }
+
   .dialog {
     max-width: 96%;
     border-radius: 12px;
@@ -599,14 +602,12 @@ select {
   }
 }
 
-
 .btn.new-game,
-.btn.share{
+.btn.share {
   width: 38px;
   height: 38px;
   padding: 0;
 }
-
 
 button {
   .lucide-copy {
@@ -626,22 +627,22 @@ button.copied {
   }
 }
 
-button:disabled{
-    opacity: .5;
-    cursor: default !important;
-    transform: scale(1);
-    filter: brightness(1);
+button:disabled {
+  opacity: 0.5;
+  cursor: default !important;
+  transform: scale(1);
+  filter: brightness(1);
 }
 
 .btn.primary {
-    background-color: #81b64c;
-    border-color: #45753c;
-    color: white;
+  background-color: #81b64c;
+  border-color: #45753c;
+  color: white;
 }
 
-.btn.primary:hover {
-    filter: brightness(120%);
-    box-shadow: 0px 0px 16px 0px #aef46721;
+.btn.primary:not(:disabled):hover {
+  filter: brightness(120%);
+  box-shadow: 0 0 16px 0 #aef46721;
 }
 
 .btn.secondary {
@@ -650,30 +651,30 @@ button:disabled{
 }
 
 .btn.secondary:hover {
-    color: white;
-    background-color: #454441;
+  color: white;
+  background-color: #454441;
 }
 
 .btn {
-    background: transparent;
-    white-space: nowrap;
-    border: none;
-    outline: none;
-    padding: 5px 20px;
-    height: 40px;
-    border-radius: 4px;
-    color: #c5c5c4;
-    cursor: pointer;
-    text-transform: capitalize;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 3px solid transparent;
-    user-select: none;
-    padding: 0;
+  background: transparent;
+  white-space: nowrap;
+  border: none;
+  outline: none;
+  padding: 5px 20px;
+  height: 40px;
+  border-radius: 4px;
+  color: #c5c5c4;
+  cursor: pointer;
+  text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 3px solid transparent;
+  user-select: none;
+  padding: 0;
 }
 
-.btn.icon{
+.btn.icon {
   width: 32px;
   height: 32px;
   display: flex;

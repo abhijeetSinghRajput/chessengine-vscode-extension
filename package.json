@@ -18,7 +18,7 @@
     "game",
     "board"
   ],
-  "icon": "icon.png",
+  "icon": "media/icons/icon-256.png",
   "activationEvents": [
     "onCommand:chanakya.openBoard"
   ],

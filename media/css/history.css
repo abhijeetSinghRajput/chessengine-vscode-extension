@@ -145,7 +145,6 @@
   }
 
   .history-panel {
-    width: min(560px, 90vw);
     height: auto;
   }
 

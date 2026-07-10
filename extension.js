@@ -54,7 +54,7 @@ function createOrRevealPanel(context) {
     }
   );
 
-  panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "icon.png"));
+  panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "icon.svg"));
   panel.webview.html = getHtml(panel.webview, context.extensionPath);
 
   panel.webview.onDidReceiveMessage((msg) => handleMessage(msg, panel, context));

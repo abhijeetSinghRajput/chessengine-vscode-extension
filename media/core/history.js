@@ -1,6 +1,11 @@
 // history.js
 import { game } from "./game.js";
-import { movePiece, addPiece, removePiece, updateCheckHighlight } from "./piece.js";
+import {
+  movePiece,
+  addPiece,
+  removePiece,
+  updateCheckHighlight,
+} from "./piece.js";
 import { setLastMoveMark, clearMarks, clearAllMarks } from "./marks.js";
 import { renderPosition } from "./board.js";
 
@@ -52,8 +57,7 @@ const stepForward = () => {
   clearAllMarks();
   applyMoveGui(moveHistory[currentIndex].move);
   updateCheckHighlight();
-  renderHistory();
-  scrollToActive();
+  updateActiveHighlight();
 };
 
 // ─── Step one move backward (reverse GUI) ──────────────────────────────────
@@ -68,8 +72,7 @@ const stepBack = () => {
   setLastMoveMark(prev.from, prev.to);
 
   updateCheckHighlight();
-  renderHistory();
-  scrollToActive();
+  updateActiveHighlight();
 };
 
 // ─── Apply a move forward on the GUI ──────────────────────────────────────
@@ -179,7 +182,6 @@ export const renderHistory = () => {
       idx,
     };
   });
-
   rows.forEach((row) => {
     const rowEl = document.createElement("div");
     rowEl.classList.add("history-row");
@@ -199,6 +201,7 @@ export const renderHistory = () => {
       }
       const btn = document.createElement("button");
       btn.classList.add("move-btn");
+      btn.dataset.idx = entry.idx;
       btn.textContent = entry.san;
       if (entry.idx === currentIndex) btn.classList.add("active");
       btn.addEventListener("click", () => goTo(entry.idx));
@@ -213,6 +216,22 @@ export const renderHistory = () => {
       block: "nearest",
     });
   });
+};
+
+// ─── Lightweight active-move highlight (no DOM rebuild) ───────────────────
+const updateActiveHighlight = () => {
+  const moveList = getMoveList();
+  if (!moveList) return;
+
+  moveList.querySelector(".move-btn.active")?.classList.remove("active");
+
+  if (currentIndex >= 0) {
+    moveList
+      .querySelector(`.move-btn[data-idx="${currentIndex}"]`)
+      ?.classList.add("active");
+  }
+
+  scrollToActive();
 };
 
 const scrollToActive = () => {
@@ -261,7 +280,9 @@ export const resetHistory = () => {
   currentIndex = -1;
   renderHistory();
   // Clear check highlights on reset
-  document.querySelectorAll('.square.in-check').forEach(el => el.classList.remove('in-check'));
+  document
+    .querySelectorAll(".square.in-check")
+    .forEach((el) => el.classList.remove("in-check"));
 };
 
 // ─── Build history from moves (for PGN loading) ──────────────────────────
