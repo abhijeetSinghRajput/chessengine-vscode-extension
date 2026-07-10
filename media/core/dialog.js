@@ -295,6 +295,8 @@ function handleFileUpload(file) {
     pgnInput.value = pgnContent;
     fenInput.value = "";
 
+    loadGameBtn.disabled = !pgnInput.value.trim() && !fenInput.value.trim();
+
     setTimeout(() => {
       uploadBar.style.width = "0%";
     }, 1000);
