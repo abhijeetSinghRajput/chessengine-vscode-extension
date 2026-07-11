@@ -14,6 +14,7 @@
    but the layer background is transparent and passes through drags */
 .mark-layer {
   pointer-events: none;  /* layer itself: pass through */
+  container-type: inline-size;
 }
 
 /* Individual marks re-enable pointer-events where needed */
@@ -63,7 +64,7 @@
   width: 70%;
   height: 70%;
   background: transparent;
-  border: 6px solid rgba(0, 0, 0, 0.2);
+  border: 1.2cqi solid rgba(0, 0, 0, 0.2);
   border-radius: 50%;
 }
 
