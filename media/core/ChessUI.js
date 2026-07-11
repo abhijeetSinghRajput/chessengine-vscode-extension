@@ -170,7 +170,7 @@ export class ChessUI {
     try {
       game.load(fen);
     } catch (e) {
-      console.error("Invalid FEN:", fen, e);
+      handleError(error, `Invalid FEN: ${fen}`);
       game.reset();
     }
 

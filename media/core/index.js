@@ -9,13 +9,14 @@
 
 import { ChessUI } from "./ChessUI.js";
 import { initDialogs, openDialog } from "./dialog.js";
-import { playGameStart } from "./sound.js";
+import { initSound, playGameStart } from "./sound.js";
 
 const ui = new ChessUI({});
 
 ui.init();
 initDialogs();
 playGameStart();
+initSound();
 
 // ── React to moves (hook point for analytics, clocks, game-over UI, …) ───────
 ui.onMove(({ move, fen, turn }) => {

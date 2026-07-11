@@ -16,6 +16,7 @@
  */
 
 import { fetchMove } from "./engine.js";
+import { handleError } from "./error.js";
 import { setThinking, setDepthBadge, setMoveTime } from "./ui.js";
 
 export class BotController {
@@ -101,7 +102,7 @@ export class BotController {
 
       await this._exec(from, to, promotion);
     } catch (err) {
-      console.error(`[Bot ${this.color}] engine error:`, err);
+      handleError(err, `[Bot ${this.color}] engine error`);
     } finally {
       this._busy = false;
       setThinking(this.color, false);

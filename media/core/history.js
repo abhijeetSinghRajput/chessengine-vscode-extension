@@ -8,6 +8,7 @@ import {
 } from "./piece.js";
 import { setLastMoveMark, clearMarks, clearAllMarks } from "./marks.js";
 import { renderPosition } from "./board.js";
+import { playMoveSound } from "./sound.js";
 
 export const moveHistory = [];
 let currentIndex = -1; // -1 = start position
@@ -57,27 +58,36 @@ export const recordMove = (move) => {
 // ─── Step one move forward (apply GUI) ────────────────────────────────────
 const stepForward = () => {
   if (currentIndex >= moveHistory.length - 1) return;
+
   currentIndex++;
+
+  const move = moveHistory[currentIndex].move;
+
   clearAllMarks();
-  applyMoveGui(moveHistory[currentIndex].move);
+  applyMoveGui(move);
   updateCheckHighlight();
   updateActiveHighlight();
+
   playMoveSound(move, game, move.color);
 };
 
 // ─── Step one move backward (reverse GUI) ──────────────────────────────────
 const stepBack = () => {
   if (currentIndex < 0) return;
-  reverseMoveGui(moveHistory[currentIndex].move);
+
+  const move = moveHistory[currentIndex].move;
+
+  reverseMoveGui(move);
   currentIndex--;
-
   clearAllMarks();
-
-  const prev = moveHistory[currentIndex].move;
-  setLastMoveMark(prev.from, prev.to);
+  if (currentIndex >= 0) {
+    const prev = moveHistory[currentIndex].move;
+    setLastMoveMark(prev.from, prev.to);
+  }
 
   updateCheckHighlight();
   updateActiveHighlight();
+
   playMoveSound(move, game, move.color);
 };
 

@@ -125,22 +125,46 @@
           </div>
 
           <svg viewBox="0 0 100 100" class="coordinates" aria-hidden="true">
-            <text x="0.75" y="3.5" font-size="2.8" class="coordinate-light">8</text>
-            <text x="0.75" y="15.75" font-size="2.8" class="coordinate-dark">7</text>
-            <text x="0.75" y="28.25" font-size="2.8" class="coordinate-light">6</text>
-            <text x="0.75" y="40.75" font-size="2.8" class="coordinate-dark">5</text>
-            <text x="0.75" y="53.25" font-size="2.8" class="coordinate-light">4</text>
-            <text x="0.75" y="65.75" font-size="2.8" class="coordinate-dark">3</text>
-            <text x="0.75" y="78.25" font-size="2.8" class="coordinate-light">2</text>
-            <text x="0.75" y="90.75" font-size="2.8" class="coordinate-dark">1</text>
-            <text x="10"   y="99"    font-size="2.8" class="coordinate-dark">a</text>
-            <text x="22.5" y="99"    font-size="2.8" class="coordinate-light">b</text>
-            <text x="35"   y="99"    font-size="2.8" class="coordinate-dark">c</text>
-            <text x="47.5" y="99"    font-size="2.8" class="coordinate-light">d</text>
-            <text x="60"   y="99"    font-size="2.8" class="coordinate-dark">e</text>
-            <text x="72.5" y="99"    font-size="2.8" class="coordinate-light">f</text>
-            <text x="85"   y="99"    font-size="2.8" class="coordinate-dark">g</text>
-            <text x="97.5" y="99"    font-size="2.8" class="coordinate-light">h</text>
+            <text x="0.75" y="3.5" font-size="2.8" class="coordinate-light">
+              8
+            </text>
+            <text x="0.75" y="15.75" font-size="2.8" class="coordinate-dark">
+              7
+            </text>
+            <text x="0.75" y="28.25" font-size="2.8" class="coordinate-light">
+              6
+            </text>
+            <text x="0.75" y="40.75" font-size="2.8" class="coordinate-dark">
+              5
+            </text>
+            <text x="0.75" y="53.25" font-size="2.8" class="coordinate-light">
+              4
+            </text>
+            <text x="0.75" y="65.75" font-size="2.8" class="coordinate-dark">
+              3
+            </text>
+            <text x="0.75" y="78.25" font-size="2.8" class="coordinate-light">
+              2
+            </text>
+            <text x="0.75" y="90.75" font-size="2.8" class="coordinate-dark">
+              1
+            </text>
+            <text x="10" y="99" font-size="2.8" class="coordinate-dark">a</text>
+            <text x="22.5" y="99" font-size="2.8" class="coordinate-light">
+              b
+            </text>
+            <text x="35" y="99" font-size="2.8" class="coordinate-dark">c</text>
+            <text x="47.5" y="99" font-size="2.8" class="coordinate-light">
+              d
+            </text>
+            <text x="60" y="99" font-size="2.8" class="coordinate-dark">e</text>
+            <text x="72.5" y="99" font-size="2.8" class="coordinate-light">
+              f
+            </text>
+            <text x="85" y="99" font-size="2.8" class="coordinate-dark">g</text>
+            <text x="97.5" y="99" font-size="2.8" class="coordinate-light">
+              h
+            </text>
           </svg>
         </div>
 
@@ -234,6 +258,24 @@
 
       <div class="sidebar">
         <div class="actions">
+          <button class="btn secondary flip" title="Flip board">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m21 16-4 4-4-4" />
+              <path d="M17 20V4" />
+              <path d="m3 8 4-4 4 4" />
+              <path d="M7 4v16" />
+            </svg>
+          </button>
           <button
             title="Export Game"
             id="dialog-export-trigger"
@@ -277,7 +319,11 @@
               <path d="M12 5v14" />
             </svg>
           </button>
-          <button class="btn secondary flip" title="Flip board">
+          <button
+            class="btn secondary sound on"
+            id="sound-toggle"
+            title="Sound on/off"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -288,11 +334,34 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
+              class="lucide lucide-volume2-icon lucide-volume"
             >
-              <path d="m21 16-4 4-4-4" />
-              <path d="M17 20V4" />
-              <path d="m3 8 4-4 4 4" />
-              <path d="M7 4v16" />
+              <path
+                d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"
+              />
+              <path d="M16 9a5 5 0 0 1 0 6" />
+              <path d="M19.364 18.364a9 9 0 0 0 0-12.728" />
+            </svg>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-volume-off-icon lucide-volume-off"
+            >
+              <path d="M16 9a5 5 0 0 1 .95 2.293" />
+              <path d="M19.364 5.636a9 9 0 0 1 1.889 9.96" />
+              <path d="m2 2 20 20" />
+              <path
+                d="m7 7-.587.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298V11"
+              />
+              <path d="M9.828 4.172A.686.686 0 0 1 11 4.657v.686" />
             </svg>
           </button>
         </div>

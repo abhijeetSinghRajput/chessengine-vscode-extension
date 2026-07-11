@@ -5,6 +5,28 @@
 //                      'p'=promotion
 
 const cache = {};
+let soundEnabled = true;
+
+export function initSound() {
+  const button = document.querySelector("#sound-toggle");
+
+  soundEnabled = JSON.parse(
+    localStorage.getItem("chanakya-sound") ?? "true"
+  );
+
+  button?.classList.toggle("off", !soundEnabled);
+
+  button?.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+
+    button.classList.toggle("off", !soundEnabled);
+
+    localStorage.setItem(
+      "chanakya-sound",
+      JSON.stringify(soundEnabled)
+    );
+  });
+}
 
 const load = (name) => {
   if (!cache[name]) {
@@ -38,6 +60,8 @@ ALL.forEach(load);
  * @param {string} side  - 'w' | 'b'  (side that just moved)
  */
 export const playMoveSound = (move, game, side) => {
+  if (!soundEnabled) return;
+
   if (game.isGameOver()) {
     play("game-end");
     return;

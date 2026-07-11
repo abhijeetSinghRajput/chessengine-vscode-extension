@@ -55,6 +55,22 @@ button.play.playing .lucide-pause-icon {
   display: inline-block;
 }
 
+button.sound .lucide-volume-off {
+  display: none;
+}
+
+button.sound .lucide-volume {
+  display: inline-block;
+}
+
+button.sound.off .lucide-volume-off {
+  display: inline-block;
+}
+
+button.sound.off .lucide-volume {
+  display: none;
+}
+
 /* App container - prevents overflow */
 .app {
   display: flex;
@@ -910,8 +926,7 @@ button:disabled {
     font-size: 20px;
   }
   .game-over .dialog-header .subtitle {
-      color: #989795;
-      font-size: 11px;
+    color: #989795;
+    font-size: 11px;
   }
-
 }

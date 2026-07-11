@@ -171,7 +171,7 @@ function copyToClipboard(text, button) {
   navigator.clipboard
     .writeText(text)
     .then(() => showCopyFeedback(button))
-    .catch((err) => console.error("Failed to copy:", err));
+    .catch((err) => handleError(err, "Failed to copy to clipboard"));
 }
 
 /** Show copy feedback (3 second acknowledgement) */
@@ -286,7 +286,7 @@ function loadFromInput() {
 function handleFileUpload(file) {
   const reader = new FileReader();
   uploadError.textContent = "";
-  
+
   reader.onprogress = (e) => {
     if (e.lengthComputable) {
       const progress = (e.loaded / e.total) * 100;
@@ -396,16 +396,15 @@ export function initDialogs() {
   // Load Game buttons
   loadGameBtn?.addEventListener("click", loadFromInput);
 
-  [
-    newGameBtn,
-    document.querySelector(".game-over .new-game"), 
-  ].forEach((btn) => {
-    btn?.addEventListener("click", () => {
-      const START_FEN =
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-      loadFEN(START_FEN);
-    });
-  });
+  [newGameBtn, document.querySelector(".game-over .new-game")].forEach(
+    (btn) => {
+      btn?.addEventListener("click", () => {
+        const START_FEN =
+          "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        loadFEN(START_FEN);
+      });
+    },
+  );
 
   // Keyboard shortcuts
   document.addEventListener("keydown", (e) => {
