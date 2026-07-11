@@ -91,6 +91,24 @@ button.play.playing .lucide-pause-icon{
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
+  background-color: var(--light-square-color);
+}
+
+.coordinates {
+    left: 0;
+    position: absolute;
+    top: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    font-weight: 600;
+}
+
+.coordinate-light {
+  fill: var(--dark-square-color);
+}
+.coordinate-dark {
+  fill: var(--light-square-color);
 }
 
 .square {

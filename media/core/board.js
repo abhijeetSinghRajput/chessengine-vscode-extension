@@ -12,7 +12,7 @@ export const initBoard = () => {
     for(let i = 0; i<8; ++i){
         for(let j = 0; j<8; ++j){
             const domSquare = document.createElement('div');
-            const color = (i + j ) % 2 === 0? "light" : "dark";
+            const color = (i + j ) % 2 === 0? "dark" : "light";
 
             domSquare.dataset.square = FILES[j] + (i + 1);
             domSquare.classList.add('square', color);

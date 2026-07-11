@@ -175,3 +175,28 @@
     font-size: 11px;
   }
 }
+
+@media (max-width: 300px) {
+  .actions button {
+    height: 32px;
+    width: 32px;
+  }
+
+  .actions button svg {
+    height: 14px;
+    width: 14px;
+  }
+
+  .history-nav {
+    gap: 4px;
+  }
+
+  .history-nav button{
+    padding: 0;
+  }
+
+  .history-nav button svg{
+    width: 16px;
+    height: 16px;
+  }
+}
