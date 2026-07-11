@@ -2,7 +2,7 @@
   "name": "chess-engine",
   "displayName": "Chess Engine",
   "description": "Play chess inside VS Code against your own UCI engine (chess.exe) — no server, no API calls.",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "publisher": "MRCodium",
   "engines": {
     "vscode": "^1.85.0"
