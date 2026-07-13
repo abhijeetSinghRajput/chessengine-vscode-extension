@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/mark.css" />
     <link rel="stylesheet" href="css/history.css" />
     <link rel="stylesheet" href="css/utils.css" />
+    <link rel="stylesheet" href="css/animation.css" />
   </head>
   <body>
     <div class="app">
@@ -107,9 +108,10 @@
 
         <!-- ── Board ── -->
         <div id="board">
-          <div class="square-layer"></div>
-          <div class="piece-layer"></div>
-          <div class="mark-layer"></div>
+          <div class="layer square-layer"></div>
+          <div class="layer piece-layer"></div>
+          <div class="layer mark-layer"></div>
+          <div class="layer gameend-layer"></div>
 
           <div class="promotion-window white">
             <div class="piece wq"></div>
@@ -619,7 +621,6 @@
               accept=".pgn"
               style="display: none"
             />
-            <div id="upload-bar" style="width: 0%"></div>
             <div class="btn secondary" id="upload-pgn-btn">
               <svg
                 viewBox="0 0 24 24"

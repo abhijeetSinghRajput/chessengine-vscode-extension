@@ -105,7 +105,6 @@ button.sound.off .lucide-volume {
   max-width: 100%;
   position: relative;
   border-radius: 4px;
-  overflow: hidden;
   flex-shrink: 0;
   background-color: var(--light-square-color);
 }
@@ -143,8 +142,7 @@ button.sound.off .lucide-volume {
   background-color: var(--highlight-color);
 }
 
-.mark-layer,
-.piece-layer {
+.layer {
   position: absolute;
   inset: 0;
 }
@@ -415,6 +413,10 @@ select {
   visibility: visible;
 }
 
+.backdrop.active:has(#dialog-gameover.active){
+  transition-delay: 2s;
+}
+
 /* ── DIALOG (unified) replaces .window ── */
 .dialog {
   position: fixed;
@@ -577,13 +579,6 @@ select {
 .upload textarea:focus {
   border-color: #8a8580;
 }
-#upload-bar {
-  height: 3px;
-  background: linear-gradient(90deg, #6b9f6b, #4a7a4a);
-  border-radius: 2px;
-  width: 0%;
-  transition: width 0.3s ease;
-}
 
 /* ── dialog footer (buttons) ── */
 .dialog-footer {
@@ -633,7 +628,6 @@ select {
     max-width: 100%;
     position: relative;
     border-radius: 4px;
-    overflow: hidden;
     flex-shrink: 0;
   }
 
@@ -682,7 +676,7 @@ select {
 }
 
 .game-over.active {
-  transition-delay: 0.7s;
+  transition-delay: 2s;
   transform: translate(-50%, -50%) scale(1);
   opacity: 1;
   visibility: visible;
@@ -789,8 +783,8 @@ select {
 .game-over .dialog-close {
   position: absolute;
   z-index: 10;
-  top: 10;
-  right: 10;
+  top: 10px;
+  right: 10px;
 }
 
 button {

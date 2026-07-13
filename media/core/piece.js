@@ -6,6 +6,7 @@ import { askPromotion } from "./promotion.js";
 import { playMoveSound, playIllegal } from "./sound.js";
 import { recordMove, isLive } from "./history.js";
 import { showGameOverDialog } from "./dialog.js";
+import { showGameEndBadges } from "./gameEndAnimation.js";
 
 export const guiPieces = {};
 export const clearGuiPieces = () => {
@@ -132,6 +133,7 @@ export const executeMove = async (from, to, promotion) => {
   recordMove(move);
 
   if(game.isGameOver()){
+    showGameEndBadges();
     showGameOverDialog(move);
   }
 

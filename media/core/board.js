@@ -6,6 +6,8 @@ export const domBoard = document.querySelector('#board');
 export const pieceLayer = domBoard.querySelector('#board .piece-layer')
 export const squareLayer = domBoard.querySelector('#board .square-layer')
 export const markLayer = domBoard.querySelector('#board .mark-layer')
+export const gameEndLayer = domBoard.querySelector('#board .gameend-layer')
+
 export const FILES = 'abcdefgh';
 
 export const initBoard = () => {

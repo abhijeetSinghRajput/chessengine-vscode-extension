@@ -7,6 +7,7 @@ import {
   updateCheckHighlight,
 } from "./piece.js";
 import { setLastMoveMark, clearMarks, clearAllMarks } from "./marks.js";
+import { showGameEndBadges, clearGameEndBadges } from "./gameEndAnimation.js"; // NEW
 import { renderPosition } from "./board.js";
 import { playMoveSound } from "./sound.js";
 
@@ -55,6 +56,14 @@ export const recordMove = (move) => {
   }
 };
 
+const syncGameEndBadges = () => {
+  if (game.isGameOver()) {
+    showGameEndBadges();
+  } else {
+    clearGameEndBadges();
+  }
+};
+
 // ─── Step one move forward (apply GUI) ────────────────────────────────────
 const stepForward = () => {
   if (currentIndex >= moveHistory.length - 1) return;
@@ -67,6 +76,7 @@ const stepForward = () => {
   applyMoveGui(move);
   updateCheckHighlight();
   updateActiveHighlight();
+  syncGameEndBadges();
 
   playMoveSound(move, game, move.color);
 };
@@ -87,6 +97,7 @@ const stepBack = () => {
 
   updateCheckHighlight();
   updateActiveHighlight();
+  syncGameEndBadges();
 
   playMoveSound(move, game, move.color);
 };

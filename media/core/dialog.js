@@ -22,7 +22,6 @@ const newGameDialog = document.getElementById("dialog-newgame");
 const fenInput = document.getElementById("upload-fen-input");
 const pgnInput = document.getElementById("upload-pgn-input");
 const fileInput = document.getElementById("file-input");
-const uploadBar = document.getElementById("upload-bar");
 const uploadBtn = document.getElementById("upload-pgn-btn");
 const loadGameBtn = document.getElementById("load-game");
 const newGameBtn = document.getElementById("new-game");
@@ -284,35 +283,42 @@ function loadFromInput() {
 
 /** Handle PGN file upload */
 function handleFileUpload(file) {
-  const reader = new FileReader();
-  uploadError.textContent = "";
-
-  reader.onprogress = (e) => {
-    if (e.lengthComputable) {
-      const progress = (e.loaded / e.total) * 100;
-      uploadBar.style.width = progress + "%";
+  try {
+    // Check if file is empty
+    if (file.size === 0) {
+      uploadError.textContent = "Error: File is empty (0 bytes). Please select a valid PGN file.";
+      return;
     }
-  };
 
-  reader.onload = (e) => {
-    uploadBar.style.width = "100%";
-    const pgnContent = e.target.result;
-    pgnInput.value = pgnContent;
-    fenInput.value = "";
+    const reader = new FileReader();
+    uploadError.textContent = "";
 
-    loadGameBtn.disabled = !pgnInput.value.trim() && !fenInput.value.trim();
+    reader.onload = (e) => {
+      try {
+        const pgnContent = e.target.result;
 
-    setTimeout(() => {
-      uploadBar.style.width = "0%";
-    }, 1000);
-  };
+        pgnInput.value = pgnContent;
+        fenInput.value = "";
 
-  reader.onerror = () => {
-    uploadError.textContent = "Error reading file.";
-    uploadBar.style.width = "0%";
-  };
+        loadGameBtn.disabled = !pgnInput.value.trim() && !fenInput.value.trim();
+      } catch (innerError) {
+        console.error("Error in onload:", innerError);
+        uploadError.textContent =
+          "Error processing file: " + innerError.message;
+      }
+    };
 
-  reader.readAsText(file);
+    reader.onerror = () => {
+      console.error("FileReader error:", reader.error); // Debug
+      uploadError.textContent =
+        "Error reading file: " + (reader.error?.message || "Unknown error");
+    };
+
+    reader.readAsText(file);
+  } catch (e) {
+    console.error("Outer catch:", e);
+    uploadError.textContent = "Error: " + e.message;
+  }
 }
 
 // ─── Event Listeners ─────────────────────────────────────────────────────
@@ -365,6 +371,13 @@ export function initDialogs() {
 
     if (hasFenValue) {
       pgnInput.value = "";
+    }
+  });
+
+  fenInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      loadFromInput();
     }
   });
 

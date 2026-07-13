@@ -1,0 +1,382 @@
+/*===================================================
+================= keyframes =========================
+====================================================*/
+
+@keyframes slidein {
+    0% {
+        opacity: 0;
+        top: calc(var(--text-y-position) + 20%)
+    }
+
+    to {
+        opacity: 1;
+        top: var(--text-y-position)
+    }
+}
+
+
+@keyframes fadeingrow {
+    0% {
+        opacity: 0;
+        transform: translate(-50%,-50%) scale(.4)
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%,-50%) scale(1)
+    }
+}
+
+@keyframes slidecorner {
+    0% {
+        left: 50%;
+        top: var(--icon-starting-y);
+        transform: translate(-50%,-50%)
+    }
+
+    to {
+        left: var(--x-position);
+        top: calc(var(--y-position) + 1%);
+        transform: translate(var(--icon-translate-x),var(--icon-translate-y)) scale(.55)
+    }
+}
+
+@keyframes textshrink {
+    0% {
+        opacity: 1;
+        transform: translate(var(--text-translate-x),var(--text-translate-y))
+    }
+
+    to {
+        opacity: 0;
+        transform: translate(var(--text-translate-x),var(--text-translate-y)) scaleX(0)
+    }
+}
+
+@keyframes iconbackground {
+    0% {
+        opacity: 0;
+        padding: var(--target-icon-size) 40%
+    }
+
+    to {
+        opacity: 1;
+        padding: var(--target-icon-size)
+    }
+}
+
+@keyframes squarefadein {
+    0% { opacity: 0 }
+    to { opacity: var(--target-opacity) }
+}
+
+@keyframes squarefadeout {
+    0% { opacity: var(--target-opacity)}
+    to { opacity: 0}
+}
+
+@keyframes fade-out-animation {
+    0% { opacity: 1}
+    to { opacity: 0}
+}
+
+.stalemate.icon-background,
+.stalemate.flying-points,
+.drawwhite.icon-background,
+.drawwhite.flying-points,
+.drawblack.icon-background,
+.drawblack.flying-points {
+    background-color: #555351
+}
+
+.animated-effect {
+    --first-step-duration: .3s;
+    --second-step-duration: .3s;
+    --delay: .7s;
+    --square-alpha: .8;
+    --icon-bg-scale: 1;
+    --y-position: calc( 0% + var(--inset-y-factor) );
+    --x-position: calc( 100% + var(--inset-x-factor) );
+    --text-x-position: var(--x-position);
+    --text-y-position: var(--y-position);
+    --text-line-height: calc( var(--line-height-ratio) * var(--square-size) );
+    --icon-starting-y: 62.5%;
+    --text-translate-x: -50%;
+    --text-translate-y: -50%;
+    --icon-bg-translate-x: -50%;
+    --icon-bg-translate-y: -50%;
+    --icon-translate-x: -50%;
+    --icon-translate-y: -50%;
+    --text-transform-origin: center center;
+    --inset-x-factor: -5%;
+    --inset-y-factor: 5%;
+    --font-size-ratio: calc( 18 / 82.5 );
+    --line-height-ratio: calc( 30 / 82.5 );
+    --padding-ratio: calc( 14 / 82.5 );
+    background-clip: content-box;
+    bottom: 100%;
+    box-sizing: border-box;
+    color: #000;
+    height: 12.5%;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 12.5%;
+    z-index: 10;
+}
+
+.animated-effect.tuck-top {
+    --y-position: calc( 0% + var(--target-icon-size) );
+    --inset-y-factor: 0%;
+    --half-text-line-height: calc( var(--text-line-height) / 2 );
+    --text-y-position: calc( calc( var(--y-position) - var(--target-icon-size)) + var(--half-text-line-height) )
+}
+
+.animated-effect.tuck-right {
+    --x-position: calc( 100% - var(--target-icon-size) );
+    --inset-x-factor: 0%;
+    --text-translate-x: -100%;
+    --text-transform-origin: 100% center;
+    --text-x-position: calc( var(--x-position) + var(--target-icon-size))
+}
+
+.animated-effect:not(.below-piece) {
+    z-index: 4;
+}
+
+.pseudo3d .animated-effect:not(.below-piece) {
+    z-index: 11;
+}
+
+.animated-effect.brilliant {
+    color: var(--color-classification-brilliant);
+}
+
+.animated-effect.greatfind {
+    color: var(--color-classification-great);
+}
+
+.animated-effect.inaccuracy {
+    color: var(--color-classification-inaccuracy)
+}
+
+.animated-effect.mistake {
+    color: var(--color-classification-mistake)
+}
+
+.animated-effect.blunder {
+    color: var(--color-classification-blunder)
+}
+
+.animated-effect.stalemate,
+.animated-effect.drawwhite,
+.animated-effect.drawblack {
+    color: #555351
+}
+
+.animated-effect.resignwhite,
+.animated-effect.resignblack,
+.animated-effect.mate,
+.animated-effect.checkmateblack,
+.animated-effect.checkmatewhite,
+.animated-effect.timeoutblack,
+.animated-effect.timeoutwhite,
+.animated-effect.bughouseblack,
+.animated-effect.bughousewhite,
+.animated-effect.abandon {
+    color: #e02828
+}
+
+.resignblack.icon-background,
+.resignblack.flying-points,
+.resignwhite.icon-background,
+.resignwhite.flying-points,
+.mate.icon-background,
+.mate.flying-points,
+.checkmateblack.icon-background,
+.checkmateblack.flying-points,
+.checkmatewhite.icon-background,
+.checkmatewhite.flying-points,
+.timeoutblack.icon-background,
+.timeoutblack.flying-points,
+.timeoutwhite.icon-background,
+.timeoutwhite.flying-points,
+.abandon.icon-background,
+.abandon.flying-points,
+.bughousewhite.icon-background,
+.bughousewhite.flying-points,
+.bughouseblack.icon-background,
+.bughouseblack.flying-points {
+    background-color: #e02828
+}
+
+.winner.icon-background,
+.winner.flying-points {
+    background-color: #83b84f
+}
+
+.animated-effect.winner {
+    color: #83b84f
+}
+
+.animated-effect.bestmove {
+    color: var(--color-classification-best)
+}
+
+.animated-effect.miss {
+    color: var(--color-classification-miss)
+}
+
+.animated-effect.skills {
+    color: var(--color-gold-300)
+}
+
+.animated-effect.tricky {
+    color: var(--color-purple-300, #7A66F4)
+}
+
+.animated-effect .text {
+    animation-delay: 0s,calc(var(--first-step-duration) + var(--delay));
+    animation-duration: var(--first-step-duration),var(--second-step-duration);
+    animation-fill-mode: forwards;
+    animation-name: slidein,textshrink;
+    background-color: #fff;
+    border-radius: 500px;
+    box-shadow: 0 1px #00000059;
+    font-size: calc(var(--font-size-ratio) * var(--square-size));
+    font-weight: 700;
+    left: var(--text-x-position);
+    line-height: var(--text-line-height);
+    padding: 0 calc(var(--padding-ratio) * var(--square-size));
+    pointer-events: none;
+    position: absolute;
+    transform: translate(var(--text-translate-x),var(--text-translate-y));
+    transform-origin: var(--text-transform-origin);
+    transition-timing-function: cubic-bezier(0,0,
+    .2,1),cubic-bezier(.42,0,
+    .58,1);
+    white-space: nowrap;
+    z-index: 1
+}
+
+.animated-effect .icon {
+    animation-delay: 0s,calc(var(--first-step-duration) + var(--delay));
+    animation-duration: var(--first-step-duration),var(--second-step-duration);
+    animation-fill-mode: forwards;
+    animation-name: fadeingrow,slidecorner;
+    filter: drop-shadow(0 1px 0 rgba(0,0,0,
+    .35));
+    left: 50%;
+    position: absolute;
+    top: var(--icon-starting-y);
+    transform: translate(-50%,-50%);
+    transition-timing-function: cubic-bezier(0,0,
+    .2,1),cubic-bezier(.42,0,
+    .58,1);
+    z-index: 2
+}
+
+.animated-effect .icon-background {
+    animation-delay: calc(var(--first-step-duration) + var(--delay));
+    animation-duration: var(--second-step-duration);
+    animation-fill-mode: forwards;
+    animation-name: iconbackground;
+    border-radius: 50%;
+    box-shadow: 0 1px #00000059;
+    font-weight: 700;
+    left: var(--x-position);
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: var(--y-position);
+    transform: translate(var(--icon-bg-translate-x),var(--icon-bg-translate-y)) scale(var(--icon-bg-scale));
+    transition-timing-function: cubic-bezier(0,0,
+    .2,1),cubic-bezier(.42,0,
+    .58,1);
+    z-index: 1
+}
+
+.animated-effect .square {
+    animation-delay: 0s,calc(var(--first-step-duration) + var(--delay));
+    animation-duration: var(--first-step-duration),var(--second-step-duration);
+    animation-fill-mode: forwards;
+    animation-name: squarefadein,squarefadeout;
+    background-color: #000;
+    height: 100%;
+    position: absolute;
+    width: 100%
+}
+
+.animated-effect .square.brilliant {
+    background-color: rgba(27,172,166,var(--square-alpha))
+}
+
+.animated-effect .square.greatfind {
+    background-color: rgba(92,139,176,var(--square-alpha))
+}
+
+.animated-effect .square.inaccuracy {
+    background-color: rgba(247,192,69,var(--square-alpha))
+}
+
+.animated-effect .square.mistake {
+    background-color: rgba(229,143,42,var(--square-alpha))
+}
+
+.animated-effect .square.blunder {
+    background-color: rgba(202,52,49,var(--square-alpha))
+}
+
+.animated-effect .square.stalemate,
+.animated-effect .square.drawwhite,
+.animated-effect .square.drawblack {
+    background-color: rgba(85,83,81,var(--square-alpha))
+}
+
+.animated-effect .square.resignblack,
+.animated-effect .square.resignwhite,
+.animated-effect .square.mate,
+.animated-effect .square.checkmateblack,
+.animated-effect .square.checkmatewhite,
+.animated-effect .square.timeoutblack,
+.animated-effect .square.timeoutwhite,
+.animated-effect .square.bughouseblack,
+.animated-effect .square.bughousewhite,
+.animated-effect .square.abandon {
+    background-color: rgba(224,40,40,var(--square-alpha))
+}
+
+.animated-effect .square.winner {
+    background-color: rgba(131,184,79,var(--square-alpha))
+}
+
+.animated-effect .square.bestmove {
+    background-color: rgba(151,189,77,var(--square-alpha))
+}
+
+.animated-effect .square.miss {
+    background-color: rgba(255,119,105,var(--square-alpha))
+}
+
+.animated-effect .square.skills {
+    background-color: rgba(227,170,36,var(--square-alpha))
+}
+
+.animated-effect .square.tricky {
+    background-color: rgba(122,102,244,var(--square-alpha))
+}
+
+.animated-effect.fade-out {
+    animation-duration: .3s;
+    animation-fill-mode: forwards;
+    animation-name: fade-out-animation;
+    animation-timing-function: cubic-bezier(0,0,
+    .4,1)
+}
+
+.animated-effect .scale-animation {
+    --icon-bg-scale: 2;
+    transition: transform .3s cubic-bezier(0,0,
+    .4,1)
+}

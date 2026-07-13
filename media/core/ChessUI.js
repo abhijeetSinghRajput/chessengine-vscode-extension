@@ -55,6 +55,7 @@ import { clearAllMarks } from "./marks.js";
 import { updateCheckHighlight } from "./piece.js";
 import { notifyNewGame } from "./engine.js";
 import { showGameOverDialog } from "./dialog.js";
+import { showGameEndBadges, clearGameEndBadges } from "./gameEndAnimation.js";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -117,12 +118,14 @@ export class ChessUI {
 
   /** Full reset: clear history, reload start position. */
   resetGame() {
+    clearGameEndBadges();
     this._loadPosition(START_FEN, true);
     notifyNewGame();
   }
 
   /** Load an arbitrary FEN. */
   loadFen(fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
+    clearGameEndBadges();
     // Reset the game state
     game.load(fen);
     // Clear all marks
@@ -200,6 +203,7 @@ export class ChessUI {
     if (game.isGameOver()) {
       this._bots.w.enabled = false;
       this._bots.b.enabled = false;
+      showGameEndBadges();
       showGameOverDialog(move);
     }
 
