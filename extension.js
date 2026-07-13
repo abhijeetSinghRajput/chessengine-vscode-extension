@@ -21,7 +21,7 @@ let pool = null;
 let panel = null;
 
 function activate(context) {
-  const openBoard = vscode.commands.registerCommand("chanakya.openBoard", () => {
+  const openBoard = vscode.commands.registerCommand("chess.openBoard", () => {
     createOrRevealPanel(context);
   });
 
@@ -45,7 +45,7 @@ function createOrRevealPanel(context) {
 
   panel = vscode.window.createWebviewPanel(
     "chanakyaBoard",
-    "Chanakya — Chess",
+    "Chess",
     vscode.ViewColumn.One,
     {
       enableScripts: true,

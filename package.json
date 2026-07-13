@@ -2,7 +2,7 @@
   "name": "chess-engine",
   "displayName": "Chess Engine",
   "description": "Play chess inside VS Code against your own UCI engine (chess.exe) — no server, no API calls.",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "publisher": "MRCodium",
   "engines": {
     "vscode": "^1.85.0"
@@ -20,21 +20,21 @@
   ],
   "icon": "media/icons/icon-256.png",
   "activationEvents": [
-    "onCommand:chanakya.openBoard"
+    "onCommand:chess.openBoard"
   ],  
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "chanakya.openBoard",
-        "title": "Chanakya: Open Chess Board",
+        "command": "chess.openBoard",
+        "title": "Chess: Open Chess Board",
         "icon": "$(circle-large-outline)"
       }
     ],
     "menus": {
       "commandPalette": [
         {
-          "command": "chanakya.openBoard"
+          "command": "chess.openBoard"
         }
       ]
     },

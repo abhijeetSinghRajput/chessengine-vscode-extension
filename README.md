@@ -28,7 +28,7 @@ does not ship one. See **Setup** below.
 2. Copy your engine binary into the extension's `engine/` folder (see the
    Setup Guide for exact steps), **or** set `chanakya.enginePath` in
    Settings to point at it.
-3. Open the Command Palette → **Chanakya: Open Chess Board**.
+3. Open the Command Palette → **Chess: Open Chess Board**.
 4. Toggle the bot switch on either player panel to have the engine play
    that side.
 
@@ -43,7 +43,7 @@ does not ship one. See **Setup** below.
 
 ## Commands
 
-- `Chanakya: Open Chess Board`
+- `Chess: Open Chess Board`
 - `Chanakya: New Game`
 - `Chanakya: Flip Board`
 
