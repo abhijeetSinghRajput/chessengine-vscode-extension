@@ -13,7 +13,8 @@ import {
 } from "./history.js";
 import { updateCheckHighlight } from "./piece.js";
 import { clearAllMarks } from "./marks.js";
-import { play } from "./sound.js";
+import { play, playGameStart } from "./sound.js";
+import { clearGameEndBadges, showGameEndBadges } from "./gameEndAnimation.js";
 
 // ─── DOM References ──────────────────────────────────────────────────────────
 const backdrop = document.getElementById("backdrop");
@@ -227,12 +228,16 @@ function loadFEN(fen) {
     game.load(fen);
     renderPosition(game.fen());
     resetHistory(game.fen());
+    clearGameEndBadges();
     clearAllMarks();
     updateCheckHighlight();
     goLast();
     closeDialogs();
-    play("game-start");
+    playGameStart();
     uploadError.textContent = "";
+    if(game.isGameOver()) {
+      showGameEndBadges();
+    }
     return true;
   } catch (e) {
     uploadError.textContent = e.message;
@@ -243,20 +248,29 @@ function loadFEN(fen) {
 /** Load PGN string */
 function loadPGN(pgn) {
   try {
-    // Load PGN into chess.js
+    // Reset game first
+    game.reset();
+    
+    // Then load PGN
     game.loadPgn(pgn);
-
+    
     // Get all moves from the loaded game
     const moves = game.history({ verbose: true });
-
-    // Reset game to start
-    game.reset();
-
-    // Build history from moves - this now handles GUI updates
+    
+    // Now build history from moves (this should handle the GUI updates)
     buildHistoryFromMoves(moves);
-
+    
+    clearGameEndBadges();
+    clearAllMarks();
+    updateCheckHighlight();
     closeDialogs();
+    playGameStart();
+
     uploadError.textContent = "";
+    
+    if(game.isGameOver()) {
+      showGameEndBadges();
+    }
     return true;
   } catch (e) {
     uploadError.textContent = e.message;
@@ -412,8 +426,7 @@ export function initDialogs() {
   [newGameBtn, document.querySelector(".game-over .new-game")].forEach(
     (btn) => {
       btn?.addEventListener("click", () => {
-        const START_FEN =
-          "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         loadFEN(START_FEN);
       });
     },
@@ -433,6 +446,7 @@ export function initDialogs() {
 
   // Open dialogs from sidebar
   dialogNewgameTrigger?.addEventListener("click", () => {
+    fenInput.autofocus = true;
     openDialog("dialog-newgame");
   });
 

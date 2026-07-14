@@ -514,14 +514,14 @@ select {
   gap: 16px;
   flex: 1;
 }
-.dialog-content .fen,
-.dialog-content .pgn {
+.dialog-content .fen-content,
+.dialog-content .pgn-content {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.dialog-content .fen p,
-.dialog-content .pgn p {
+.dialog-content .fen-content p,
+.dialog-content .pgn-content p {
   font-size: 14px;
   font-weight: 600;
   color: #a09d9a;
@@ -532,6 +532,7 @@ select {
 
 /* inputs + textarea (shared) */
 .dialog input[type="text"],
+.dialog .pgn,
 .dialog textarea {
   background: #3c3a38;
   border: 1px solid #555352;
@@ -546,6 +547,7 @@ select {
   font-family: inherit;
 }
 .dialog input[type="text"]:focus,
+.dialog .pgn:focus,
 .dialog textarea:focus {
   border-color: #8a8580;
   box-shadow: 0 0 0 3px rgba(138, 133, 128, 0.15);
@@ -555,11 +557,13 @@ select {
   opacity: 0.8;
 }
 .dialog textarea {
-  resize: vertical;
-  min-height: 100px;
-  max-height: 300px;
   line-height: 1.6;
   font-size: 13px;
+  min-height: 200px;
+  max-height: 400px;
+  border: 1px solid #555352;
+  border-radius: 8px;
+  resize: vertical;
 }
 
 /* upload section (shared) */
@@ -568,13 +572,6 @@ select {
   flex-direction: column;
   gap: 10px;
   margin-top: 4px;
-}
-.upload textarea {
-  min-height: 80px;
-  max-height: 200px;
-  border: 1px solid #555352;
-  border-radius: 8px;
-  resize: vertical;
 }
 .upload textarea:focus {
   border-color: #8a8580;
@@ -597,7 +594,7 @@ select {
 }
 
 /* ── small overrides for download dialog (readonly) ── */
-.dialog.download .fen input {
+.dialog.download .fen-content input {
   font-size: 14px;
   padding: 8px 12px;
   background: #2c2a27;
