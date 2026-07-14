@@ -472,16 +472,16 @@ export function showGameOverDialog(move) {
     const winner = move.color === "w" ? "white" : "black";
 
     title = `${winner} won`;
-    reason = "Checkmate";
+    reason = "By Checkmate";
 
     if (winner === "white") {
       whitePlayer?.classList.add("winner");
     } else {
       blackPlayer?.classList.add("winner");
     }
-  } else if (game.isStalemate()) reason = "stalemate";
-  else if (game.isThreefoldRepetition()) reason = "threefold repetition";
-  else if (game.isInsufficientMaterial()) reason = "insufficient material";
+  } else if (game.isStalemate()) reason = "By Stalemate";
+  else if (game.isThreefoldRepetition()) reason = "By threefold repetition";
+  else if (game.isInsufficientMaterial()) reason = "By insufficient material";
   else if (game.isDraw()) reason = "50-move rule";
 
   uiTitle.textContent = title;
