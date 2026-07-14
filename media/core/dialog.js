@@ -10,6 +10,7 @@ import {
   buildHistoryFromMoves,
   getCurrentIndex,
   getHistoryLength,
+  getStartFen,
 } from "./history.js";
 import { updateCheckHighlight } from "./piece.js";
 import { clearAllMarks } from "./marks.js";
@@ -29,6 +30,9 @@ const newGameBtn = document.getElementById("new-game");
 const dialogNewgameTrigger = document.getElementById("dialog-newgame-trigger");
 const dialogExportTrigger = document.getElementById("dialog-export-trigger");
 const uploadError = document.getElementById("upload-error");
+const exportError = document.getElementById("export-error");
+const fenOutputField = document.getElementById("fen-output");
+const pgnOutputField = document.getElementById("pgn-output");
 
 // ─── State ──────────────────────────────────────────────────────────────────
 let activeDialog = null;
@@ -70,90 +74,84 @@ export function closeDialogs() {
 
 // ─── Download Dialog ──────────────────────────────────────────────────────
 
+const STANDARD_START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+/** Determine the game-over result tag for the final recorded position,
+ *  without disturbing the live `game` object's current state. */
+function getResultTag() {
+  if (moveHistory.length === 0) return "*";
+  const restoreFen = game.fen();
+  const finalFen = moveHistory[moveHistory.length - 1].fen;
+  let result = "*";
+  try {
+    game.load(finalFen);
+    if (game.isCheckmate()) {
+      result = game.turn() === "w" ? "0-1" : "1-0";
+    } else if (game.isDraw()) {
+      result = "1/2-1/2";
+    }
+  } catch (e) {
+    // ignore
+  } finally {
+    try {
+      game.load(restoreFen);
+    } catch (e) {
+      // ignore — best-effort restore
+    }
+  }
+  return result;
+}
+
+/** Build PGN purely from moveHistory — the only reliable source,
+ *  since chess.js's own game.pgn()/game.history() get corrupted
+ *  by the game.load() calls used during board navigation. */
+function buildPGNFromHistory() {
+  if (moveHistory.length === 0) {
+    return "No moves played yet.";
+  }
+
+  const startFen = getStartFen();
+  const blackStarts = startFen.split(" ")[1] === "b";
+
+  let body = "";
+  moveHistory.forEach((entry, idx) => {
+    const { move } = entry;
+    const adjustedIdx = blackStarts ? idx + 1 : idx;
+    const moveNumber = Math.ceil((adjustedIdx + 1) / 2);
+
+    if (move.color === "w") {
+      body += `${moveNumber}. `;
+    } else if (idx === 0 && blackStarts) {
+      body += `${moveNumber}... `;
+    }
+    body += move.san + " ";
+  });
+
+  body += getResultTag();
+
+  const header =
+    startFen !== STANDARD_START_FEN
+      ? `[SetUp "1"]\n[FEN "${startFen}"]\n\n`
+      : "";
+
+  return (header + body).trim();
+}
+
 /** Update the download dialog with current position */
 function updateDownloadContent() {
   const fen = game.fen();
 
   // Get PGN - if game has no moves, try to build from history
-  let pgn = game.pgn();
+  const pgn = buildPGNFromHistory();
 
-  // If PGN is empty but we have history moves, build PGN manually
-  if (!pgn || pgn.trim() === "") {
-    pgn = buildPGNFromHistory();
-  }
-
-  const fenField = document.querySelector("#dialog-export .fen input");
-  const pgnField = document.getElementById("pgn-textarea");
-
-  if (fenField) fenField.value = fen;
-  if (pgnField) pgnField.value = pgn || "No moves played yet.";
-}
-
-/** Build PGN from the move history */
-function buildPGNFromHistory() {
-  const moves = game.history({ verbose: true });
-  if (!moves || moves.length === 0) {
-    // Try to build from moveHistory
-    if (moveHistory.length === 0) {
-      return "No moves played yet.";
-    }
-
-    // Build PGN from moveHistory
-    let pgn = "";
-    let moveNumber = 1;
-
-    for (let i = 0; i < moveHistory.length; i++) {
-      const entry = moveHistory[i];
-      const move = entry.move;
-
-      if (move.color === "w") {
-        pgn += `${moveNumber}. `;
-      }
-
-      pgn += move.san + " ";
-
-      if (move.color === "b") {
-        moveNumber++;
-      }
-    }
-
-    return pgn.trim() || "No moves played yet.";
-  }
-
-  // Build PGN string from game history
-  let pgn = "";
-  let moveNumber = 1;
-
-  for (let i = 0; i < moves.length; i++) {
-    const move = moves[i];
-
-    if (move.color === "w") {
-      pgn += `${moveNumber}. `;
-    }
-
-    pgn += move.san + " ";
-
-    if (move.color === "b") {
-      moveNumber++;
-    }
-  }
-
-  // Add result if game is over
-  if (game.isGameOver()) {
-    if (game.isCheckmate()) {
-      pgn += game.turn() === "w" ? "0-1" : "1-0";
-    } else if (game.isDraw()) {
-      pgn += "1/2-1/2";
-    }
-  }
-
-  return pgn.trim() || "No moves played yet.";
+  if (fenOutputField) fenOutputField.value = fen;
+  if (pgnOutputField) pgnOutputField.value = pgn || "No moves played yet.";
 }
 
 /** Copy text to clipboard with feedback */
 function copyToClipboard(text, button) {
   if (!text || text === "No moves played yet.") {
-    alert("Nothing to copy!");
+    exportError.textContent = "Nothing to copy!";
     return;
   }
 
@@ -194,14 +192,10 @@ function showCopyFeedback(button) {
 
 /** Download PGN as a file */
 export function downloadPGN() {
-  let pgn = game.pgn();
-
-  if (!pgn || pgn.trim() === "") {
-    pgn = buildPGNFromHistory();
-  }
+  const pgn = buildPGNFromHistory();
 
   if (!pgn || pgn === "No moves played yet.") {
-    alert("No moves to download.");
+    exportError.textContent = "No moves to download.";
     return;
   }
 
@@ -354,18 +348,16 @@ export function initDialogs() {
   // Copy buttons
   const fenCopyBtn = document.getElementById("copy-fen");
   const pgnCopyBtn = document.getElementById("copy-pgn");
-  const fenInputField = document.getElementById("fen-input");
-  const pgnInputField = document.getElementById("pgn-textarea");
 
-  if (fenCopyBtn && fenInputField) {
+  if (fenCopyBtn && fenOutputField) {
     fenCopyBtn.addEventListener("click", () => {
-      copyToClipboard(fenInputField.value, fenCopyBtn);
+      copyToClipboard(fenOutputField.value, fenCopyBtn);
     });
   }
 
-  if (pgnCopyBtn && pgnInputField) {
+  if (pgnCopyBtn && pgnOutputField) {
     pgnCopyBtn.addEventListener("click", () => {
-      copyToClipboard(pgnInputField.value, pgnCopyBtn);
+      copyToClipboard(pgnOutputField.value, pgnCopyBtn);
     });
   }
 

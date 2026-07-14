@@ -16,6 +16,7 @@ let currentIndex = -1; // -1 = start position
 let onMoveCallback = null; // Callback for when a move is recorded
 let startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+export const getStartFen = () => startFen;
 const getMoveList = () => document.querySelector(".history-moves");
 
 // ─── Set callback for move recording ────────────────────────────────────────

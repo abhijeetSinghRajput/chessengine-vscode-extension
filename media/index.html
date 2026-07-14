@@ -528,7 +528,7 @@
                 </svg>
               </button>
             </div>
-            <input type="text" readonly value="" id="fen-input" />
+            <input type="text" readonly value="" id="fen-output" />
           </div>
           <div class="pgn-content">
             <div class="flex justify-between items-center">
@@ -567,8 +567,9 @@
                 </svg>
               </button>
             </div>
-            <textarea id="pgn-textarea" readonly></textarea>
+            <textarea id="pgn-output" readonly></textarea>
           </div>
+          <p class="error" id="export-error"></p>
         </div>
         <div class="dialog-footer">
           <button class="btn primary">

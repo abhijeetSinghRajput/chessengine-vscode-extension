@@ -600,7 +600,7 @@ select {
   background: #2c2a27;
   border-color: #444241;
 }
-.dialog.download textarea#pgn-textarea {
+.dialog.download textarea {
   min-height: 120px;
   max-height: 250px;
   background: #2c2a27;
