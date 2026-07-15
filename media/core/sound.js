@@ -85,5 +85,5 @@ export const playMoveSound = (move, game, side) => {
   play("move-self");
 };
 
-export const playIllegal  = () => play("illegal");
-export const playGameStart = () => play("game-start");
+export const playIllegal   = () => soundEnabled && play("illegal");
+export const playGameStart = () => soundEnabled && play("game-start");
