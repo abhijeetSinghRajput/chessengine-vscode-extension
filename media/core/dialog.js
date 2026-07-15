@@ -216,8 +216,7 @@ export function downloadPGN() {
 
 // ─── New Game Dialog ──────────────────────────────────────────────────────
 
-/** Load a FEN string */
-function loadFEN(fen) {
+export function loadFEN(fen) {
   try {
     game.load(fen);
     renderPosition(game.fen());
@@ -239,8 +238,7 @@ function loadFEN(fen) {
   }
 }
 
-/** Load PGN string */
-function loadPGN(pgn) {
+export function loadPGN(pgn) {
   try {
     // Reset game first
     game.reset();

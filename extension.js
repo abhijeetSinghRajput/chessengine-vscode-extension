@@ -7,6 +7,8 @@
  *   - the webview panel lifecycle (chess board UI lives in /media)
  *   - the EnginePool (spawns ./engine/chess.exe, or a user-configured path)
  *   - the postMessage bridge between the webview and the local engine
+ *   - the Activity Bar sidebar (New Game / History) and its bridge to the
+ *     board panel above
  *
  * No network calls, no HTTP server — the webview talks to this file via
  * vscode.postMessage(), and this file talks to chess.exe over stdin/stdout.
@@ -16,9 +18,13 @@ const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
 const { EnginePool } = require("./engine/EnginePool");
+const { SidebarProvider } = require("./sidebarProvider");
 
 let pool = null;
 let panel = null;
+let panelReady = false;
+let pendingAction = null; // { command, action, fen?, pgn? } — flushed once panelReady
+let sidebarProvider = null;
 
 function activate(context) {
   const openBoard = vscode.commands.registerCommand("chess.openBoard", () => {
@@ -26,6 +32,53 @@ function activate(context) {
   });
 
   context.subscriptions.push(openBoard);
+
+  // ── Sidebar (New Game / History) ─────────────────────────────────────
+  sidebarProvider = new SidebarProvider(context.extensionUri);
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      SidebarProvider.viewType,
+      sidebarProvider,
+    ),
+  );
+
+  // Sidebar → host: forward the chosen action into the board panel,
+  // auto-opening it if it isn't already open (and queueing the action
+  // until the panel signals it's actually ready to receive messages —
+  // see the "ready" case in handleMessage).
+  sidebarProvider.onNewGame = () => {
+    dispatchToBoard({ command: "uiCommand", action: "newGame" }, context);
+    // ui.resetGame() in the webview doesn't currently report back, so we
+    // report success optimistically once the message has been dispatched.
+    sidebarProvider.postResult("newGame", true);
+  };
+
+  sidebarProvider.onLoadFen = (fen) => {
+    dispatchToBoard({ command: "uiCommand", action: "loadFen", fen }, context);
+  };
+
+  sidebarProvider.onLoadPgn = (pgn) => {
+    dispatchToBoard({ command: "uiCommand", action: "loadPgn", pgn }, context);
+  };
+}
+
+/** Send a uiCommand message to the board panel, opening it first if
+ *  necessary and queueing the message if the panel hasn't signalled
+ *  "ready" yet. Only the most recent pending action is kept — if the
+ *  user fires two actions before the panel loads, the second wins. */
+function dispatchToBoard(msg, context) {
+  if (!panel) {
+    createOrRevealPanel(context);
+  } else {
+    panel.reveal(vscode.ViewColumn.One);
+  }
+
+  if (panelReady) {
+    panel.webview.postMessage(msg);
+  } else {
+    pendingAction = msg;
+  }
 }
 
 function deactivate() {
@@ -61,6 +114,8 @@ function createOrRevealPanel(context) {
 
   panel.onDidDispose(() => {
     panel = null;
+    panelReady = false;
+    pendingAction = null;
     pool?.stopAll();
   });
 }
@@ -141,6 +196,17 @@ async function handleMessage(msg, panel, context) {
       break;
     }
 
+    // Webview → host: signals index.js has loaded and attached its
+    // message listener. Flush anything queued while it was still loading.
+    case "ready": {
+      panelReady = true;
+      if (pendingAction) {
+        panel.webview.postMessage(pendingAction);
+        pendingAction = null;
+      }
+      break;
+    }
+
     case "newGame": {
       try {
         const enginePool = ensurePool(context);
@@ -153,6 +219,19 @@ async function handleMessage(msg, panel, context) {
 
     case "stopSearch": {
       pool?.stopAll();
+      break;
+    }
+
+    // Board panel → host: result of an action requested by the sidebar.
+    // Relay it back so the sidebar can clear/show the right section's
+    // error text.
+    case "loadFenResult": {
+      sidebarProvider?.postResult("fen", msg.success, msg.error);
+      break;
+    }
+
+    case "loadPgnResult": {
+      sidebarProvider?.postResult("pgn", msg.success, msg.error);
       break;
     }
 

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}';"
+  />
+  <link rel="stylesheet" href="{{cssUri}}" />
+  <title>Chanakya</title>
+</head>
+<body>
+  <div class="sidebar-container">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="new-game" role="tab" aria-selected="true">
+        New Game
+      </button>
+      <button class="tab-btn" data-tab="history" role="tab" aria-selected="false">
+        History
+      </button>
+    </div>
+
+    <div class="tab-content active" id="tab-new-game" role="tabpanel">
+
+      <!-- Fresh board -->
+      <div class="section">
+        <button id="sidebar-newgame-btn" class="btn primary full" type="button">
+          New Game
+        </button>
+        <div id="sidebar-newgame-status" class="error-text"></div>
+      </div>
+
+      <!-- FEN -->
+      <div class="section field-group">
+        <label for="sidebar-fen-input">Load from FEN</label>
+        <input
+          type="text"
+          id="sidebar-fen-input"
+          placeholder="Paste FEN here…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="sidebar-fen-load-btn" class="btn secondary full" type="button" disabled>
+          Load FEN
+        </button>
+        <div id="sidebar-fen-error" class="error-text"></div>
+      </div>
+
+      <!-- PGN -->
+      <div class="section field-group">
+        <label for="sidebar-pgn-input">Load from PGN</label>
+        <textarea
+          id="sidebar-pgn-input"
+          placeholder="Paste PGN here…"
+          rows="8"
+        ></textarea>
+
+        <div class="upload-row">
+          <input type="file" id="sidebar-file-input" accept=".pgn,.txt" hidden />
+          <button id="sidebar-upload-btn" class="btn secondary full" type="button">
+            Upload PGN
+          </button>
+        </div>
+
+        <div id="sidebar-pgn-error" class="error-text"></div>
+
+        <button id="sidebar-pgn-load-btn" class="btn primary full" type="button" disabled>
+          Load PGN
+        </button>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-history" role="tabpanel">
+      <div class="placeholder">
+        <p>Coming soon</p>
+      </div>
+    </div>
+  </div>
+
+  <script nonce="{{nonce}}" src="{{jsUri}}"></script>
+</body>
+</html>

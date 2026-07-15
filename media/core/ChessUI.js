@@ -203,8 +203,6 @@ export class ChessUI {
     if (game.isGameOver()) {
       this._bots.w.enabled = false;
       this._bots.b.enabled = false;
-      showGameEndBadges();
-      showGameOverDialog(move);
     }
 
     return move;

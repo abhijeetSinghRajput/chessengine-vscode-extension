@@ -21,9 +21,27 @@
   "icon": "media/icons/icon-256.png",
   "activationEvents": [
     "onCommand:chess.openBoard"
-  ],  
+  ],
   "main": "./extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "chanakya-sidebar",
+          "title": "Chanakya",
+          "icon": "media/icons/activity-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "chanakya-sidebar": [
+        {
+          "type": "webview",
+          "id": "chanakya.sidebarView",
+          "name": "Chanakya"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "chess.openBoard",
