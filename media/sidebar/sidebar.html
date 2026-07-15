@@ -1,82 +1,179 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta
-    http-equiv="Content-Security-Policy"
-    content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}';"
-  />
-  <link rel="stylesheet" href="{{cssUri}}" />
-  <title>Chanakya</title>
-</head>
-<body>
-  <div class="sidebar-container">
-    <div class="tabs" role="tablist">
-      <button class="tab-btn active" data-tab="new-game" role="tab" aria-selected="true">
-        New Game
-      </button>
-      <button class="tab-btn" data-tab="history" role="tab" aria-selected="false">
-        History
-      </button>
-    </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}';"
+    />
+    <link rel="stylesheet" href="{{cssUri}}" />
+    <title>Chanakya</title>
+  </head>
+  <body>
+    <div class="sidebar-container">
+      <div class="tabs" role="tablist">
+        <button
+          class="tab-btn active"
+          data-tab="new-game"
+          role="tab"
+          aria-selected="true"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+          >
+            <path
+              d="M8 1.5C8 1.22386 7.77614 1 7.5 1C7.22386 1 7 1.22386 7 1.5V7H1.5C1.22386 7 1 7.22386 1 7.5C1 7.77614 1.22386 8 1.5 8H7V13.5C7 13.7761 7.22386 14 7.5 14C7.77614 14 8 13.7761 8 13.5V8H13.5C13.7761 8 14 7.77614 14 7.5C14 7.22386 13.7761 7 13.5 7H8V1.5Z"
+            />
+          </svg>
 
-    <div class="tab-content active" id="tab-new-game" role="tabpanel">
-
-      <!-- Fresh board -->
-      <div class="section">
-        <button id="sidebar-newgame-btn" class="btn primary full" type="button">
           New Game
         </button>
-        <div id="sidebar-newgame-status" class="error-text"></div>
-      </div>
-
-      <!-- FEN -->
-      <div class="section field-group">
-        <label for="sidebar-fen-input">Load from FEN</label>
-        <input
-          type="text"
-          id="sidebar-fen-input"
-          placeholder="Paste FEN here…"
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <button id="sidebar-fen-load-btn" class="btn secondary full" type="button" disabled>
-          Load FEN
+        <button
+          class="tab-btn"
+          data-tab="history"
+          role="tab"
+          aria-selected="false"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+          >
+            <path
+              d="M7.99909 3C10.7605 3 12.9991 5.23858 12.9991 8C12.9991 10.7614 10.7605 13 7.99909 13C5.39117 13 3.2491 11.003 3.0195 8.45512C2.99471 8.1801 2.75167 7.97723 2.47664 8.00202C2.20161 8.0268 1.99875 8.26985 2.02353 8.54488C2.29916 11.6035 4.86898 14 7.99909 14C11.3128 14 13.9991 11.3137 13.9991 8C13.9991 4.68629 11.3128 2 7.99909 2C6.20656 2 4.59815 2.78613 3.49909 4.03138V2.5C3.49909 2.22386 3.27524 2 2.99909 2C2.72295 2 2.49909 2.22386 2.49909 2.5V5.5C2.49909 5.77614 2.72295 6 2.99909 6H3.08812C3.09498 6.00014 3.10184 6.00014 3.10868 6H5.99909C6.27524 6 6.49909 5.77614 6.49909 5.5C6.49909 5.22386 6.27524 5 5.99909 5H3.99863C4.91128 3.78495 6.36382 3 7.99909 3ZM7.99909 5.5C7.99909 5.22386 7.77524 5 7.49909 5C7.22295 5 6.99909 5.22386 6.99909 5.5V8.5C6.99909 8.77614 7.22295 9 7.49909 9H9.49909C9.77524 9 9.99909 8.77614 9.99909 8.5C9.99909 8.22386 9.77524 8 9.49909 8H7.99909V5.5Z"
+            />
+          </svg>
+          History
         </button>
-        <div id="sidebar-fen-error" class="error-text"></div>
       </div>
 
-      <!-- PGN -->
-      <div class="section field-group">
-        <label for="sidebar-pgn-input">Load from PGN</label>
-        <textarea
-          id="sidebar-pgn-input"
-          placeholder="Paste PGN here…"
-          rows="8"
-        ></textarea>
-
-        <div class="upload-row">
-          <input type="file" id="sidebar-file-input" accept=".pgn,.txt" hidden />
-          <button id="sidebar-upload-btn" class="btn secondary full" type="button">
-            Upload PGN
+      <div class="tab-content active" id="tab-new-game" role="tabpanel">
+        <!-- Fresh board -->
+        <div class="section">
+          <button
+            id="sidebar-newgame-btn"
+            class="btn primary full"
+            type="button"
+          >
+            New Game
           </button>
+          <div id="sidebar-newgame-status" class="error-text"></div>
         </div>
 
-        <div id="sidebar-pgn-error" class="error-text"></div>
+        <!-- FEN -->
+        <div class="section field-group">
+          <label for="sidebar-fen-input">Load from FEN</label>
+          <input
+            type="text"
+            id="sidebar-fen-input"
+            placeholder="Paste FEN here…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button
+            id="sidebar-fen-load-btn"
+            class="btn secondary full"
+            type="button"
+            disabled
+          >
+            Load FEN
+          </button>
+          <div id="sidebar-fen-error" class="error-text"></div>
+        </div>
 
-        <button id="sidebar-pgn-load-btn" class="btn primary full" type="button" disabled>
-          Load PGN
-        </button>
+        <!-- PGN -->
+        <div class="section field-group">
+          <label for="sidebar-pgn-input">Load from PGN</label>
+          <textarea
+            id="sidebar-pgn-input"
+            placeholder="Paste PGN here…"
+            rows="8"
+          ></textarea>
+
+          <div class="upload-row">
+            <input
+              type="file"
+              id="sidebar-file-input"
+              accept=".pgn,.txt"
+              hidden
+            />
+            <button
+              id="sidebar-upload-btn"
+              class="btn secondary full"
+              type="button"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+              >
+                <path
+                  d="M11.5 7C9.015 7 7 9.015 7 11.5C7 13.985 9.015 16 11.5 16C13.985 16 16 13.985 16 11.5C16 9.015 13.985 7 11.5 7ZM13.854 11.854C13.659 12.049 13.342 12.049 13.147 11.854L12.001 10.708V14.001C12.001 14.277 11.777 14.501 11.501 14.501C11.225 14.501 11.001 14.277 11.001 14.001V10.708L9.855 11.854C9.66 12.049 9.343 12.049 9.148 11.854C8.953 11.659 8.953 11.342 9.148 11.147L11.148 9.147C11.196 9.099 11.251 9.063 11.31 9.039C11.368 9.015 11.432 9.001 11.498 9.001H11.504C11.571 9.001 11.634 9.015 11.692 9.039C11.75 9.063 11.805 9.099 11.852 9.145L11.855 9.148L13.855 11.148C14.05 11.343 14.05 11.66 13.855 11.855L13.854 11.854ZM4.25 12H6V13H4.25C2.455 13 1 11.545 1 9.75C1 8.029 2.338 6.62 4.03 6.507C4.273 4.53 5.958 3 8 3C9.862 3 11.411 4.278 11.857 6H10.811C10.397 4.838 9.303 4 8 4C6.343 4 5 5.343 5 7C5 7.276 4.776 7.5 4.5 7.5H4.25C3.007 7.5 2 8.507 2 9.75C2 10.993 3.007 12 4.25 12Z"
+                />
+              </svg>
+              Upload PGN
+            </button>
+          </div>
+
+          <div id="sidebar-pgn-error" class="error-text"></div>
+
+          <button
+            id="sidebar-pgn-load-btn"
+            class="btn primary full"
+            type="button"
+            disabled
+          >
+            Load PGN
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-history" role="tabpanel">
+        <div class="history-actions">
+          <label>Recent History</label>
+
+          <div class="history-btn-group">
+            <button
+              title="Refresh"
+              id="refresh-history-btn"
+              class="btn secondary icon"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+              >
+                <path
+                  d="M3 8C3 5.23858 5.23858 3 8 3C9.63527 3 11.0878 3.78495 12.0005 5H10C9.72386 5 9.5 5.22386 9.5 5.5C9.5 5.77614 9.72386 6 10 6H12.8904C12.8973 6.00014 12.9041 6.00014 12.911 6H13C13.2761 6 13.5 5.77614 13.5 5.5V2.5C13.5 2.22386 13.2761 2 13 2C12.7239 2 12.5 2.22386 12.5 2.5V4.03138C11.4009 2.78613 9.79253 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14C11.1301 14 13.6999 11.6035 13.9756 8.54488C14.0003 8.26985 13.7975 8.0268 13.5225 8.00202C13.2474 7.97723 13.0044 8.1801 12.9796 8.45512C12.75 11.003 10.6079 13 8 13C5.23858 13 3 10.7614 3 8Z"
+                />
+              </svg>
+            </button>
+
+            <button
+              title="Clear history"
+              id="clear-history-btn"
+              class="btn secondary"
+            >
+              Clear All
+            </button>
+          </div>
+        </div>
+
+        <div id="history-list"></div>
+        
       </div>
     </div>
 
-    <div class="tab-content" id="tab-history" role="tabpanel">
-      <div class="placeholder">
-        <p>Coming soon</p>
-      </div>
-    </div>
-  </div>
-
-  <script nonce="{{nonce}}" src="{{jsUri}}"></script>
-</body>
+    <script nonce="{{nonce}}" src="{{jsUri}}"></script>
+  </body>
 </html>

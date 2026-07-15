@@ -1,12 +1,22 @@
 // piece.js
 import { pieceLayer, squareLayer } from "./board.js";
-import { tryMove, isOwnPiece, game } from "./game.js";
-import { showHints, clearMarks, setSelectedMark, setLastMoveMark } from "./marks.js";
+import {
+  tryMove,
+  isOwnPiece,
+  game,
+} from "./game.js";
+import {
+  showHints,
+  clearMarks,
+  setSelectedMark,
+  setLastMoveMark,
+} from "./marks.js";
 import { askPromotion } from "./promotion.js";
-import { playMoveSound, playIllegal } from "./sound.js";
+import { playMoveSound, playIllegal, playGameEndSound } from "./sound.js";
 import { recordMove, isLive } from "./history.js";
-import { showGameOverDialog } from "./dialog.js";
+import { buildPGNFromHistory, showGameOverDialog } from "./dialog.js";
 import { showGameEndBadges } from "./gameEndAnimation.js";
+import { getVsCodeApi } from "./vscodeApi.js";
 
 export const guiPieces = {};
 export const clearGuiPieces = () => {
@@ -24,11 +34,21 @@ const setSelected = (square) => {
 };
 
 // ─── Check highlight ──────────────────────────────────────────────────────────
-export const updateCheckHighlight = () => {
+export const updateCheckHighlight = (customSquare = null) => {
   squareLayer
     .querySelectorAll(".square.in-check")
     .forEach((sq) => sq.classList.remove("in-check"));
 
+  // If a custom square is provided, use it
+  if (customSquare) {
+    const squareEl = squareLayer.querySelector(`[data-square="${customSquare}"]`);
+    if (squareEl) {
+      squareEl.classList.add("in-check");
+    }
+    return;
+  }
+
+  // Otherwise use the game state
   if (!game.inCheck()) return;
 
   const kingColor = game.turn();
@@ -94,8 +114,10 @@ const isPromotionMove = (from, to) => {
   const piece = game.get(from);
   if (!piece || piece.type !== "p") return false;
   const toRank = parseInt(to[1]);
-  return (piece.color === "w" && toRank === 8) ||
-         (piece.color === "b" && toRank === 1);
+  return (
+    (piece.color === "w" && toRank === 8) ||
+    (piece.color === "b" && toRank === 1)
+  );
 };
 
 // ─── Core move executor ───────────────────────────────────────────────────────
@@ -105,11 +127,17 @@ export const executeMove = async (from, to, promotion) => {
 
   // Resolve promotion piece
   let promo = promotion ?? "q";
+  let moveInput;
+
   if (!promotion && isPromotionMove(from, to)) {
     promo = await askPromotion(to, game.turn());
+    moveInput = { from, to, promotion: promo };
+  } else {
+    // Only include promotion if it's actually a promotion move
+    moveInput = { from, to };
   }
 
-  const move = tryMove({ from, to, promotion: promo });
+  const move = tryMove(moveInput);
 
   if (!move) {
     playIllegal();
@@ -132,9 +160,24 @@ export const executeMove = async (from, to, promotion) => {
 
   recordMove(move);
 
-  if(game.isGameOver()){
+  // Autosave the in-progress game on every move (overwrites one slot —
+  // survives reload, no dedup needed since it's never appended).
+  getVsCodeApi()?.postMessage({
+    command: "saveCurrentGame",
+    pgn: buildPGNFromHistory(),
+  });
+
+  if (game.isGameOver()) {
     showGameEndBadges();
     showGameOverDialog(move);
+    playGameEndSound();
+
+    // Commit the finished game to history. Can't re-enter for the same
+    // game: no further move is possible once isGameOver() is true.
+    getVsCodeApi()?.postMessage({
+      command: "commitGameToHistory",
+      pgn: buildPGNFromHistory(),
+    });
   }
 
   return move;

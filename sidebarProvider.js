@@ -32,6 +32,7 @@ class SidebarProvider {
     this.onNewGame = null; // () => void
     this.onLoadFen = null; // (fen: string) => void
     this.onLoadPgn = null; // (pgn: string) => void
+    this.onMessage = null;
   }
 
   /** @param {vscode.WebviewView} webviewView */
@@ -74,6 +75,8 @@ class SidebarProvider {
             this.postResult("pgn", false, "Not ready yet.");
           }
           break;
+
+        default: this.onMessage?.(msg);
       }
     });
   }
@@ -90,14 +93,29 @@ class SidebarProvider {
     });
   }
 
+  postHistory(data) {
+    this._view?.webview.postMessage({
+      command: "historyData",
+      data,
+    });
+  }
+
   _getHtml(webview) {
     const nonce = getNonce();
 
     const htmlPath = vscode.Uri.joinPath(
-      this._extensionUri, "media", "sidebar", "sidebar.html",
+      this._extensionUri,
+      "media",
+      "sidebar",
+      "sidebar.html",
     );
     const cssUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "media", "sidebar", "sidebar.css"),
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "media",
+        "sidebar",
+        "sidebar.css",
+      ),
     );
     const jsUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "media", "sidebar", "sidebar.js"),

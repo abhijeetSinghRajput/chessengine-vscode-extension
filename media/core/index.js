@@ -8,14 +8,15 @@
  */
 
 import { ChessUI } from "./ChessUI.js";
-import { initDialogs, openDialog, loadFEN, loadPGN } from "./dialog.js";
-import { initSound, playGameStart } from "./sound.js";
+import { initDialogs, openDialog, loadFEN, loadPGN, buildPGNFromHistory } from "./dialog.js";
+import { initSound, playGameStartSound } from "./sound.js";
+import { getVsCodeApi } from "./vscodeApi.js";
 
 const ui = new ChessUI({});
 
 ui.init();
 initDialogs();
-playGameStart();
+playGameStartSound();
 initSound();
 
 // ── React to moves (hook point for analytics, clocks, game-over UI, …) ───────
@@ -23,14 +24,7 @@ ui.onMove(({ move, fen, turn }) => {
   // console.log("Move played:", move.san, "| FEN:", fen, "| Next:", turn);
 });
 
-// ── vscode API — guarded, since acquireVsCodeApi() may only be called once
-// per webview and something else in this panel (ChessUI.js?) may already
-// hold the reference. If you see a "acquireVsCodeApi already called" error,
-// swap this for whatever singleton your codebase already uses. ────────────
-const vscode =
-  window.__chanakyaVsCodeApi ||
-  (window.__chanakyaVsCodeApi =
-    typeof acquireVsCodeApi === "function" ? acquireVsCodeApi() : null);
+const vscode = getVsCodeApi();
 
 // ── Commands issued from the extension host (Command Palette entries,
 // and now the sidebar's New Game tab) ────────────────────────────────────
@@ -57,6 +51,15 @@ window.addEventListener("message", (event) => {
       success,
       error: success ? undefined : "Invalid PGN.",
     });
+
+    // Uploaded/pasted PGN → straight into history (deduped host-side by
+    // content hash), independent of the per-move autosave in ChessUI.js.
+    if (success) {
+      vscode?.postMessage({
+        command: "commitGameToHistory",
+        pgn: buildPGNFromHistory(),
+      });
+    }
   }
 });
 

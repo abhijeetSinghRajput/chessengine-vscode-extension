@@ -14,7 +14,7 @@ import {
 } from "./history.js";
 import { updateCheckHighlight } from "./piece.js";
 import { clearAllMarks } from "./marks.js";
-import { play, playGameStart } from "./sound.js";
+import { play, playGameStartSound } from "./sound.js";
 import { clearGameEndBadges, showGameEndBadges } from "./gameEndAnimation.js";
 
 // ─── DOM References ──────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ function getResultTag() {
   const finalFen = moveHistory[moveHistory.length - 1].fen;
   let result = "*";
   try {
-    game.load(finalFen);
+    // todo game.load(finalFen);
     if (game.isCheckmate()) {
       result = game.turn() === "w" ? "0-1" : "1-0";
     } else if (game.isDraw()) {
@@ -94,7 +94,7 @@ function getResultTag() {
     // ignore
   } finally {
     try {
-      game.load(restoreFen);
+      // todo game.load(restoreFen);
     } catch (e) {
       // ignore — best-effort restore
     }
@@ -105,17 +105,36 @@ function getResultTag() {
 /** Build PGN purely from moveHistory — the only reliable source,
  *  since chess.js's own game.pgn()/game.history() get corrupted
  *  by the game.load() calls used during board navigation. */
-function buildPGNFromHistory() {
+
+function formatPgnDate() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+
+  const month = String(
+    now.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    now.getDate()
+  ).padStart(2, "0");
+
+  return `${year}.${month}.${day}`;
+}
+
+export function buildPGNFromHistory() {
   if (moveHistory.length === 0) {
-    return "No moves played yet.";
+    return "";
   }
 
   const startFen = getStartFen();
   const blackStarts = startFen.split(" ")[1] === "b";
 
   let body = "";
+
   moveHistory.forEach((entry, idx) => {
     const { move } = entry;
+
     const adjustedIdx = blackStarts ? idx + 1 : idx;
     const moveNumber = Math.ceil((adjustedIdx + 1) / 2);
 
@@ -124,17 +143,29 @@ function buildPGNFromHistory() {
     } else if (idx === 0 && blackStarts) {
       body += `${moveNumber}... `;
     }
-    body += move.san + " ";
+
+    body += `${move.san} `;
   });
 
-  body += getResultTag();
+  const result = getResultTag();
 
-  const header =
-    startFen !== STANDARD_START_FEN
-      ? `[SetUp "1"]\n[FEN "${startFen}"]\n\n`
-      : "";
+  body += result;
 
-  return (header + body).trim();
+  const headers = [
+    `[Event "Chanakya Game"]`,
+    `[Site "VS Code"]`,
+    `[Date "${formatPgnDate()}"]`,
+    `[White "White"]`,
+    `[Black "Black"]`,
+    `[Result "${result}"]`,
+  ];
+
+  if (startFen !== STANDARD_START_FEN) {
+    headers.push(`[SetUp "1"]`);
+    headers.push(`[FEN "${startFen}"]`);
+  }
+
+  return `${headers.join("\n")}\n\n${body}`.trim();
 }
 
 /** Update the download dialog with current position */
@@ -226,7 +257,7 @@ export function loadFEN(fen) {
     updateCheckHighlight();
     goLast();
     closeDialogs();
-    playGameStart();
+    playGameStartSound();
     uploadError.textContent = "";
     if(game.isGameOver()) {
       showGameEndBadges();
@@ -240,11 +271,14 @@ export function loadFEN(fen) {
 
 export function loadPGN(pgn) {
   try {
+    // Multi-game file/paste → keep the first game only.
+    const firstGame = pgn.split(/\n\s*\n(?=\[Event)/)[0];
+
     // Reset game first
     game.reset();
     
     // Then load PGN
-    game.loadPgn(pgn);
+    game.loadPgn(firstGame);
     
     // Get all moves from the loaded game
     const moves = game.history({ verbose: true });
@@ -256,7 +290,7 @@ export function loadPGN(pgn) {
     clearAllMarks();
     updateCheckHighlight();
     closeDialogs();
-    playGameStart();
+    playGameStartSound();
 
     uploadError.textContent = "";
     

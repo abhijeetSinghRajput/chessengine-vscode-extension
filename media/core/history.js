@@ -9,7 +9,7 @@ import {
 import { setLastMoveMark, clearMarks, clearAllMarks } from "./marks.js";
 import { showGameEndBadges, clearGameEndBadges } from "./gameEndAnimation.js"; // NEW
 import { renderPosition } from "./board.js";
-import { playMoveSound } from "./sound.js";
+import { playGameEndSound, playMoveSound } from "./sound.js";
 
 export const moveHistory = [];
 let currentIndex = -1; // -1 = start position
@@ -58,7 +58,14 @@ export const recordMove = (move) => {
 };
 
 const syncGameEndBadges = () => {
+  // Only show badges if we're at the latest position (end of history)
+  if (currentIndex !== moveHistory.length - 1) {
+    clearGameEndBadges();
+    return;
+  }
+
   if (game.isGameOver()) {
+    playGameEndSound();
     showGameEndBadges();
   } else {
     clearGameEndBadges();
@@ -110,7 +117,7 @@ const applyMoveGui = (move) => {
     const entry = moveHistory[currentIndex];
     if (entry && entry.fen) {
       try {
-        game.load(entry.fen);
+        // todo game.load(entry.fen);
       } catch (e) {
         console.warn("Failed to load FEN for move:", entry.fen, e);
       }
@@ -144,7 +151,7 @@ const reverseMoveGui = (move) => {
     const entry = moveHistory[currentIndex - 1];
     if (entry && entry.fen) {
       try {
-        game.load(entry.fen);
+        // todo game.load(entry.fen);
       } catch (e) {
         console.warn("Failed to load FEN for previous position:", entry.fen, e);
       }
@@ -153,7 +160,7 @@ const reverseMoveGui = (move) => {
     // currentIndex - 1 < 0 → stepping back to the very start of the game,
     // which may not be the standard position (e.g. a custom FEN was loaded).
     try {
-      game.load(startFen);
+      // todo game.load(startFen);
     } catch (e) {
       console.warn(
         "Failed to load start FEN, falling back to default:",

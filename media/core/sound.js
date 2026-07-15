@@ -62,20 +62,13 @@ ALL.forEach(load);
 export const playMoveSound = (move, game, side) => {
   if (!soundEnabled) return;
 
-  if (game.isGameOver()) {
-    play("game-end");
-    return;
-  }
+
   if (move.flags.includes("p")) {
     play("promote");
     return;
   }
   if (move.flags.includes("k") || move.flags.includes("q")) {
     play("castle");
-    return;
-  }
-  if (game.inCheck()) {
-    play("move-check");
     return;
   }
   if (move.flags.includes("c") || move.flags.includes("e")) {
@@ -85,5 +78,7 @@ export const playMoveSound = (move, game, side) => {
   play("move-self");
 };
 
-export const playIllegal   = () => soundEnabled && play("illegal");
-export const playGameStart = () => soundEnabled && play("game-start");
+export const playIllegal        = () => soundEnabled && play("illegal");
+export const playGameStartSound = () => soundEnabled && play("game-start");
+export const playGameEndSound   = () => soundEnabled && play("game-end");
+export const playCheckSount     = () => soundEnabled && play("move-check");

@@ -127,7 +127,7 @@ export class ChessUI {
   loadFen(fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
     clearGameEndBadges();
     // Reset the game state
-    game.load(fen);
+    // todo game.load(fen);
     // Clear all marks
     clearAllMarks();
     // Render the position
@@ -171,7 +171,7 @@ export class ChessUI {
    */
   _loadPosition(fen = START_FEN, resetHistoryFlag = false) {
     try {
-      game.load(fen);
+      // todo game.load(fen);
     } catch (e) {
       handleError(error, `Invalid FEN: ${fen}`);
       game.reset();

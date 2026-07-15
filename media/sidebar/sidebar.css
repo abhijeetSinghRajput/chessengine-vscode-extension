@@ -16,6 +16,13 @@ body {
   height: 100%;
 }
 
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
 /* ── Tabs ─────────────────────────────────────────────────────────── */
 
 .tabs {
@@ -64,7 +71,7 @@ body {
 }
 
 .section + .section {
-  margin-top: 4px;
+  margin-top: 22px;
 }
 
 .divider {
@@ -79,7 +86,7 @@ body {
   gap: 8px;
 }
 
-.field-group label {
+label {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -166,14 +173,241 @@ input#sidebar-fen-input:focus {
   color: var(--vscode-errorForeground);
 }
 
-/* ── History tab (placeholder) ────────────────────────────────────── */
+/* ── History ────────────────────────────────────────────────────── */
+/* ---------- History ---------- */
 
-.placeholder {
+.history-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.history-actions .btn {
+    height: 24px;
+}
+
+.history-actions .btn.icon {
+    padding: 4px;
+    height: 24px;
+    width: 24px;
+}
+
+.history-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-card {
+  position: relative;
+
+  padding: 10px 12px;
+
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+
+  background: var(--vscode-editorWidget-background);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.history-card:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.history-card.current {
+  border-color: var(--vscode-focusBorder);
+}
+
+.history-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.history-index {
+  min-width: 34px;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color: var(--vscode-descriptionForeground);
+
+  opacity: 0.35;
+}
+
+.history-card-title {
+  font-size: 14px;
+  font-weight: 600;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  color: var(--vscode-foreground);
+}
+
+.history-winner {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.history-winner.winner {
+    color: #83b84f;
+}
+
+.history-winner.draw {
+    color: var(--vscode-descriptionForeground);
+}
+
+.history-winner svg {
+  width: 16px;
+  height: 16px;
+}
+
+.history-date {
+  margin-top: 2px;
+
+  font-size: 11px;
+
+  color: var(--vscode-descriptionForeground);
+}
+
+.history-preview {
+  color: var(--vscode-foreground);
+
+  font-size: 12px;
+  line-height: 1.6;
+
+  word-break: break-word;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+
+  overflow: hidden;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 0;
-  color: var(--vscode-descriptionForeground);
-  font-size: 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #ff6464;
+
+  cursor: pointer;
+
+  opacity: 0;
+  transform: translateX(6px);
+
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.history-card:hover .icon-btn {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.icon-btn:hover {
+  background: rgba(255, 100, 100, 0.12);
+}
+
+.clear-history-btn {
+  width: 100%;
+  display: flex;
+  justify-content: baseline;
+  align-items: center;
+
+  margin-top: 16px;
+  padding: 10px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+
+  cursor: pointer;
+}
+
+.history-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+/* ── Empty history state ───────────────────────────────────── */
+
+.history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 32px 16px;
+  margin-top: 16px;
+
+  background: var(--vscode-editorWidget-background);
+
   text-align: center;
+}
+
+.history-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 12px;
+
+  color: var(--vscode-descriptionForeground);
+
+  font-size: 40px;
+
+  opacity: 0.8;
+}
+
+.history-empty-title {
+  margin-bottom: 6px;
+
+  color: var(--vscode-foreground);
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.history-empty-hint {
+  max-width: 220px;
+
+  color: var(--vscode-descriptionForeground);
+
+  font-size: 13px;
+  line-height: 1.5;
 }

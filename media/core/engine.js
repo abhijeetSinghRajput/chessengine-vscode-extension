@@ -18,8 +18,10 @@
  * ChessUI.js where BotController is constructed.
  */
 
+import { getVsCodeApi } from "./vscodeApi.js";
+
 // Acquired once per webview session. Calling this twice throws, so guard it.
-const vscode = window.__chanakyaVsCodeApi ?? (window.__chanakyaVsCodeApi = acquireVsCodeApi());
+const vscode = getVsCodeApi();
 
 let reqId = 0;
 const pending = new Map(); // id -> { resolve, reject }
