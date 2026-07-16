@@ -315,7 +315,7 @@ async function handleMessage(msg, panel, context) {
       );
       break;
     }
-    
+
     case "confirmClearHistory": {
       const choice = await vscode.window.showWarningMessage(
         "Delete all saved games?",
@@ -340,3 +340,4 @@ async function handleMessage(msg, panel, context) {
 }
 
 module.exports = { activate, deactivate };
+

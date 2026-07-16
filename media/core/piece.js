@@ -1,9 +1,11 @@
 // piece.js
 import { pieceLayer, squareLayer } from "./board.js";
 import {
-  tryMove,
-  isOwnPiece,
   game,
+  makeMove,
+  isOwnPiece,
+  isPromotionMove,
+  currentSide,
 } from "./game.js";
 import {
   showHints,
@@ -13,7 +15,7 @@ import {
 } from "./marks.js";
 import { askPromotion } from "./promotion.js";
 import { playMoveSound, playIllegal, playGameEndSound } from "./sound.js";
-import { recordMove, isLive } from "./history.js";
+import { recordMove } from "./history.js";
 import { buildPGNFromHistory, showGameOverDialog } from "./dialog.js";
 import { showGameEndBadges } from "./gameEndAnimation.js";
 import { getVsCodeApi } from "./vscodeApi.js";
@@ -25,7 +27,7 @@ export const clearGuiPieces = () => {
   }
 };
 
-// ─── Selection state ──────────────────────────────────────────────────────────
+// ─── Selection state ──────────────────────────────────────────────────────
 let selectedSquare = null;
 
 const setSelected = (square) => {
@@ -33,22 +35,12 @@ const setSelected = (square) => {
   setSelectedMark(square);
 };
 
-// ─── Check highlight ──────────────────────────────────────────────────────────
-export const updateCheckHighlight = (customSquare = null) => {
+// ─── Check highlight ──────────────────────────────────────────────────────
+export const updateCheckHighlight = () => {
   squareLayer
     .querySelectorAll(".square.in-check")
     .forEach((sq) => sq.classList.remove("in-check"));
 
-  // If a custom square is provided, use it
-  if (customSquare) {
-    const squareEl = squareLayer.querySelector(`[data-square="${customSquare}"]`);
-    if (squareEl) {
-      squareEl.classList.add("in-check");
-    }
-    return;
-  }
-
-  // Otherwise use the game state
   if (!game.inCheck()) return;
 
   const kingColor = game.turn();
@@ -64,7 +56,11 @@ export const updateCheckHighlight = (customSquare = null) => {
   }
 };
 
-// ─── Piece primitives ─────────────────────────────────────────────────────────
+// ─── Piece primitives ─────────────────────────────────────────────────────
+// This is the ONLY thing that drives the move animation: swapping the
+// `data-square` attribute. Positioning + the transition itself lives
+// entirely in CSS (see the .piece[data-square] rules) — there is no JS
+// animation loop, so this stays cheap even during rapid autoplay/navigation.
 export const addPiece = (square, piece) => {
   const domPiece = document.createElement("div");
   guiPieces[square] = domPiece;
@@ -87,12 +83,12 @@ export const removePiece = (square) => {
 export const movePiece = (from, to) => {
   if (!guiPieces[from]) return;
   if (guiPieces[to]) removePiece(to);
-  guiPieces[from].dataset.square = to;
+  guiPieces[from].dataset.square = to; // ← triggers the CSS transition
   guiPieces[to] = guiPieces[from];
   delete guiPieces[from];
 };
 
-// ─── Special move GUI effects ─────────────────────────────────────────────────
+// ─── Special move GUI effects ─────────────────────────────────────────────
 const handleEnPassant = (move) => {
   removePiece(move.to[0] + move.from[1]);
 };
@@ -110,34 +106,20 @@ const applyPromotion = (move) => {
   domPiece.classList.add(move.color + move.promotion);
 };
 
-const isPromotionMove = (from, to) => {
-  const piece = game.get(from);
-  if (!piece || piece.type !== "p") return false;
-  const toRank = parseInt(to[1]);
-  return (
-    (piece.color === "w" && toRank === 8) ||
-    (piece.color === "b" && toRank === 1)
-  );
-};
-
-// ─── Core move executor ───────────────────────────────────────────────────────
+// ─── Core move executor ───────────────────────────────────────────────────
+// `game` is the single source of truth: makeMove() is the ONLY thing that
+// advances it during live play. If the user is mid-history when this runs,
+// `game` is already sitting at that historical position (history.js keeps
+// it in sync on every navigation), so this naturally branches — no special
+// "am I in history?" check needed here.
 export const executeMove = async (from, to, promotion) => {
-  // Allow moves when at historical position (branching) — recordMove
-  // handles truncation of any redundant future history.
-
-  // Resolve promotion piece
-  let promo = promotion ?? "q";
-  let moveInput;
+  let promo = promotion;
 
   if (!promotion && isPromotionMove(from, to)) {
-    promo = await askPromotion(to, game.turn());
-    moveInput = { from, to, promotion: promo };
-  } else {
-    // Only include promotion if it's actually a promotion move
-    moveInput = { from, to };
+    promo = await askPromotion(to, currentSide());
   }
 
-  const move = tryMove(moveInput);
+  const move = makeMove(from, to, promo);
 
   if (!move) {
     playIllegal();
@@ -158,7 +140,7 @@ export const executeMove = async (from, to, promotion) => {
   updateCheckHighlight();
   playMoveSound(move, game, move.color);
 
-  recordMove(move);
+  recordMove(move); // bookkeeping only — never touches `game`
 
   // Autosave the in-progress game on every move (overwrites one slot —
   // survives reload, no dedup needed since it's never appended).
@@ -172,8 +154,6 @@ export const executeMove = async (from, to, promotion) => {
     showGameOverDialog(move);
     playGameEndSound();
 
-    // Commit the finished game to history. Can't re-enter for the same
-    // game: no further move is possible once isGameOver() is true.
     getVsCodeApi()?.postMessage({
       command: "commitGameToHistory",
       pgn: buildPGNFromHistory(),
@@ -183,7 +163,7 @@ export const executeMove = async (from, to, promotion) => {
   return move;
 };
 
-// ─── Click handler ────────────────────────────────────────────────────────────
+// ─── Click handler ────────────────────────────────────────────────────────
 export const handlePieceClick = (e) => {
   e.stopPropagation();
 
@@ -207,13 +187,13 @@ export const handlePieceClick = (e) => {
   }
 };
 
-// ─── Click on board background → deselect ────────────────────────────────────
+// ─── Click on board background → deselect ────────────────────────────────
 export const handleBoardClick = () => {
   clearMarks();
   setSelected(null);
 };
 
-// ─── Drag & Drop ─────────────────────────────────────────────────────────────
+// ─── Drag & Drop ─────────────────────────────────────────────────────────
 let dragSource = null;
 let dragEl = null;
 

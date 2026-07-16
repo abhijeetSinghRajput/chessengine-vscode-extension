@@ -42,6 +42,9 @@ class SidebarProvider {
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [
+      this._extensionUri,
+        vscode.Uri.joinPath(this._extensionUri, "media"),
+        vscode.Uri.joinPath(this._extensionUri, "media", "assets"),
         vscode.Uri.joinPath(this._extensionUri, "media", "sidebar"),
       ],
     };
@@ -109,6 +112,8 @@ class SidebarProvider {
       "sidebar",
       "sidebar.html",
     );
+    console.log("SIDEBAR HTML:", htmlPath.fsPath);
+
     const cssUri = webview.asWebviewUri(
       vscode.Uri.joinPath(
         this._extensionUri,
@@ -121,13 +126,43 @@ class SidebarProvider {
       vscode.Uri.joinPath(this._extensionUri, "media", "sidebar", "sidebar.js"),
     );
 
+    const blackAvatarUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "media",
+        "assets",
+        "player-black.png"
+      )
+    );
+
+    const whiteAvatarUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "media",
+        "assets",
+        "player-white.png"
+      )
+    );
+
+    const drawAvatarUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "media",
+        "assets",
+        "draw.png"
+      )
+    );
+
     let html = fs.readFileSync(htmlPath.fsPath, "utf-8");
 
     html = html
-      .replace(/{{cspSource}}/g, webview.cspSource)
-      .replace(/{{nonce}}/g, nonce)
-      .replace(/{{cssUri}}/g, cssUri.toString())
-      .replace(/{{jsUri}}/g, jsUri.toString());
+    .replace(/{{cspSource}}/g, webview.cspSource)
+    .replace(/{{nonce}}/g, nonce)
+    .replace(/{{cssUri}}/g, cssUri.toString())
+    .replace(/{{jsUri}}/g, jsUri.toString())
+    .replace(/{{blackAvatarUri}}/g, blackAvatarUri.toString())
+    .replace(/{{whiteAvatarUri}}/g, whiteAvatarUri.toString())
+    .replace(/{{drawAvatarUri}}/g,  drawAvatarUri.toString());
 
     return html;
   }

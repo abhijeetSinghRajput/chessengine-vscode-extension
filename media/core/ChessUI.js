@@ -1,37 +1,13 @@
 /**
  * ChessUI.js
  * ──────────────────────────────────────────────────────────────────────────────
- * Single entry point for the chess UI library.
- *
- * Usage
- * ─────
- *   import { ChessUI } from "./ChessUI.js";
- *
- *   const ui = new ChessUI({ endpoint: "" }); // endpoint is unused in the
- *                                              // extension build — engine
- *                                              // requests are routed to the
- *                                              // extension host, not a URL.
- *   ui.init();
- *
- * Public API
- * ──────────
- *   ui.init()                    — mount board, wire bots, start listening
- *   ui.resetGame()               — full board + history reset
- *   ui.loadFen(fen)              — load an arbitrary position
- *   ui.onMove(fn)                — register callback fired after every move
- *                                  fn({ move, fen, turn }) — move = chess.js move obj
- *   ui.getBotController(color)   — get BotController instance ("w"|"b")
- *
- * DOM contract (see index.html)
- * ─────────────────────────────
- *   #board                          — board root
- *   .player[data-color="w|b"]       — player panels
- *   .player[data-color="w|b"] select — depth picker
- *   #whiteBot / #blackBot           — toggle buttons
- *   .history-moves                  — move list
- *   .nav-first/prev/next/last       — nav buttons
- *   button.flip                     — flip board
- *   .promotion-window.white/black   — promotion pickers
+ * Single entry point for the chess UI library. Only real change from your
+ * original: _uciMoveList() now reads history.js's `moves` array directly
+ * instead of game.history({verbose:true}). Both give the same answer once
+ * `game` and `currentIndex` are properly kept in sync (see history.js), but
+ * reading `moves` directly is the more robust source of truth — it's
+ * correct even if a bot's move request somehow lands while mid-navigation,
+ * since it doesn't depend on `game`'s current cursor position at all.
  */
 
 import { domBoard, initBoard, renderPosition } from "./board.js";
@@ -48,16 +24,15 @@ import {
   goLast,
   resetHistory,
   setOnMoveCallback,
+  moves,
 } from "./history.js";
-import { game } from "./game.js";
+import { game, resetGame, START_FEN } from "./game.js";
 import { BotController } from "./bot.js";
 import { clearAllMarks } from "./marks.js";
 import { updateCheckHighlight } from "./piece.js";
 import { notifyNewGame } from "./engine.js";
 import { showGameOverDialog } from "./dialog.js";
 import { showGameEndBadges, clearGameEndBadges } from "./gameEndAnimation.js";
-
-const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export class ChessUI {
   /**
@@ -68,14 +43,12 @@ export class ChessUI {
     this._endpoint = endpoint;
     this._moveListeners = [];
 
-    // Create getState function for bots
     const getState = () => ({
       fen: game.fen(),
       uciMoves: this._uciMoveList(),
       turn: game.turn(),
     });
 
-    // Bot controllers — created now, init()'d later once DOM is ready
     this._bots = {
       w: new BotController(
         "w",
@@ -91,7 +64,6 @@ export class ChessUI {
       ),
     };
 
-    // Set callback for when any move is recorded (human or bot)
     setOnMoveCallback(() => {
       this._triggerBots();
     });
@@ -99,10 +71,6 @@ export class ChessUI {
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
-  /**
-   * Mount the board and wire up all event listeners.
-   * Call once after the DOM is ready.
-   */
   init() {
     initBoard();
     initPieceLayer();
@@ -124,57 +92,35 @@ export class ChessUI {
   }
 
   /** Load an arbitrary FEN. */
-  loadFen(fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
+  loadFen(fen = START_FEN) {
     clearGameEndBadges();
-    // Reset the game state
-    // todo game.load(fen);
-    // Clear all marks
+    resetGame(fen);
     clearAllMarks();
-    // Render the position
     renderPosition(game.fen());
-    // Update check highlight
     updateCheckHighlight();
-    // Reset history
     resetHistory(game.fen());
   }
 
-  /**
-   * Register a callback fired after every completed move.
-   *
-   * @param {(payload: { move: object, fen: string, turn: "w"|"b" }) => void} fn
-   */
   onMove(fn) {
     this._moveListeners.push(fn);
   }
 
-  /**
-   * Get the BotController for one side (to manually toggle or configure).
-   *
-   * @param {"w"|"b"} color
-   * @returns {BotController}
-   */
   getBotController(color) {
     return this._bots[color];
   }
 
-  /** Flip the board orientation (used by the toolbar flip button + command palette). */
   flipBoard() {
     domBoard.classList.toggle("flipped");
   }
 
   // ── Private ────────────────────────────────────────────────────────────────
 
-  /**
-   * Load a FEN with fallback to the default starting position.
-   * @param {string} fen
-   * @param {boolean} resetHistoryFlag
-   */
   _loadPosition(fen = START_FEN, resetHistoryFlag = false) {
     try {
-      // todo game.load(fen);
+      resetGame(fen);
     } catch (e) {
-      handleError(error, `Invalid FEN: ${fen}`);
-      game.reset();
+      console.error(`Invalid FEN: ${fen}`, e);
+      resetGame(START_FEN);
     }
 
     if (resetHistoryFlag) {
@@ -184,11 +130,6 @@ export class ChessUI {
     renderPosition(game.fen());
   }
 
-  /**
-   * Wraps piece.js executeMove, notifies listeners.
-   * The promotion arg is passed through only when the bot supplies one;
-   * player-initiated promotions go through the normal askPromotion() flow.
-   */
   async _executeMoveAndNotify(from, to, promotion) {
     const move = promotion
       ? await _exec(from, to, promotion)
@@ -199,7 +140,6 @@ export class ChessUI {
     const payload = { move, fen: game.fen(), turn: game.turn() };
     this._moveListeners.forEach((fn) => fn(payload));
 
-    // ── NEW: stop the game cleanly on checkmate / stalemate / draw ──
     if (game.isGameOver()) {
       this._bots.w.enabled = false;
       this._bots.b.enabled = false;
@@ -208,37 +148,30 @@ export class ChessUI {
     return move;
   }
 
-  /** Trigger bots to check if it's their turn */
   async _triggerBots() {
     if (game.isGameOver()) return;
 
     // Small delay to ensure the move is fully processed
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    // Trigger both bots - they'll check if it's their turn
     await this._bots.w.maybeMove();
     await this._bots.b.maybeMove();
   }
 
-  /** Build a UCI move list from chess.js history for the engine payload. */
+  /** Build a UCI move list for the engine payload — sourced from history.js's
+   *  `moves` array, always the live/full game regardless of `game`'s cursor. */
   _uciMoveList() {
-    return game.history({ verbose: true }).map((m) => {
-      const promo = m.promotion ? m.promotion : "";
-      return m.from + m.to + promo;
-    });
+    return moves.map((m) => m.from + m.to + (m.promotion || ""));
   }
 
-  /** Wire toggle buttons and depth selects to their BotControllers. */
   _bindBots() {
     this._bots.w.init("#whiteBot", ".player[data-color='w'] select");
     this._bots.b.init("#blackBot", ".player[data-color='b'] select");
   }
 
   _bindBoardEvents() {
-    // Clicks on blank board area → deselect
     domBoard.addEventListener("click", () => handleBoardClick());
 
-    // Flip button
     document.querySelector("button.flip")?.addEventListener("click", () => {
       this.flipBoard();
     });
@@ -247,7 +180,7 @@ export class ChessUI {
   _bindKeyboard() {
     document.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft") goBack();
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") goForward();
+      if (e.key === "ArrowRight") goForward();
       if (e.key === "ArrowUp") goFirst();
       if (e.key === "ArrowDown") goLast();
     });

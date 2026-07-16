@@ -1,26 +1,27 @@
 // dialog.js
-import { game } from "./game.js";
+import { Chess } from "../vendor/chess.esm.js";
+import {
+  game,
+  resetGame,
+  START_FEN,
+  getHeaders,
+  setHeaders,
+  resetHeaders,
+} from "./game.js";
 import { renderPosition } from "./board.js";
 import {
   resetHistory,
-  goLast,
-  recordMove,
-  moveHistory,
-  renderHistory,
-  buildHistoryFromMoves,
-  getCurrentIndex,
-  getHistoryLength,
+  moves,
   getStartFen,
+  buildHistoryFromMoves,
 } from "./history.js";
 import { updateCheckHighlight } from "./piece.js";
 import { clearAllMarks } from "./marks.js";
-import { play, playGameStartSound } from "./sound.js";
+import { playGameStartSound } from "./sound.js";
 import { clearGameEndBadges, showGameEndBadges } from "./gameEndAnimation.js";
 
 // ─── DOM References ──────────────────────────────────────────────────────────
 const backdrop = document.getElementById("backdrop");
-const downloadDialog = document.getElementById("dialog-export");
-const newGameDialog = document.getElementById("dialog-newgame");
 const fenInput = document.getElementById("upload-fen-input");
 const pgnInput = document.getElementById("upload-pgn-input");
 const fileInput = document.getElementById("file-input");
@@ -39,7 +40,6 @@ let activeDialog = null;
 
 // ─── Dialog Management ─────────────────────────────────────────────────────
 
-/** Open a specific dialog */
 export function openDialog(dialogId) {
   if (!backdrop) return;
 
@@ -59,7 +59,6 @@ export function openDialog(dialogId) {
   }
 }
 
-/** Close all dialogs */
 export function closeDialogs() {
   if (backdrop) {
     backdrop.classList.remove("active");
@@ -72,107 +71,44 @@ export function closeDialogs() {
   activeDialog = null;
 }
 
-// ─── Download Dialog ──────────────────────────────────────────────────────
-
-const STANDARD_START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-/** Determine the game-over result tag for the final recorded position,
- *  without disturbing the live `game` object's current state. */
-function getResultTag() {
-  if (moveHistory.length === 0) return "*";
-  const restoreFen = game.fen();
-  const finalFen = moveHistory[moveHistory.length - 1].fen;
-  let result = "*";
-  try {
-    // todo game.load(finalFen);
-    if (game.isCheckmate()) {
-      result = game.turn() === "w" ? "0-1" : "1-0";
-    } else if (game.isDraw()) {
-      result = "1/2-1/2";
-    }
-  } catch (e) {
-    // ignore
-  } finally {
-    try {
-      // todo game.load(restoreFen);
-    } catch (e) {
-      // ignore — best-effort restore
-    }
+// ─── PGN export ─────────────────────────────────────────────────────────
+// Built on a throw-away *scratch* Chess instance, replaying `moves` from
+// `startFen`. This is the key fix over the old approach: it never has to
+// load/restore FEN on the live `game`, so it can't desync navigation, and
+// it always exports the FULL game regardless of where the user has
+// scrubbed to in history.
+function getResultTag(finalPositionGame) {
+  if (finalPositionGame.isCheckmate()) {
+    return finalPositionGame.turn() === "w" ? "0-1" : "1-0";
   }
-  return result;
-}
-
-/** Build PGN purely from moveHistory — the only reliable source,
- *  since chess.js's own game.pgn()/game.history() get corrupted
- *  by the game.load() calls used during board navigation. */
-
-function formatPgnDate() {
-  const now = new Date();
-
-  const year = now.getFullYear();
-
-  const month = String(
-    now.getMonth() + 1
-  ).padStart(2, "0");
-
-  const day = String(
-    now.getDate()
-  ).padStart(2, "0");
-
-  return `${year}.${month}.${day}`;
+  if (finalPositionGame.isDraw()) return "1/2-1/2";
+  return "*";
 }
 
 export function buildPGNFromHistory() {
-  if (moveHistory.length === 0) {
-    return "";
-  }
+  if (moves.length === 0) return "";
 
-  const startFen = getStartFen();
-  const blackStarts = startFen.split(" ")[1] === "b";
+  const scratch = new Chess();
+  scratch.load(getStartFen());
 
-  let body = "";
-
-  moveHistory.forEach((entry, idx) => {
-    const { move } = entry;
-
-    const adjustedIdx = blackStarts ? idx + 1 : idx;
-    const moveNumber = Math.ceil((adjustedIdx + 1) / 2);
-
-    if (move.color === "w") {
-      body += `${moveNumber}. `;
-    } else if (idx === 0 && blackStarts) {
-      body += `${moveNumber}... `;
-    }
-
-    body += `${move.san} `;
+  Object.entries(getHeaders()).forEach(([k, v]) => {
+    if (v != null) scratch.header(k, v);
   });
 
-  const result = getResultTag();
+  moves.forEach((m) => {
+    scratch.move(
+      m.promotion ? { from: m.from, to: m.to, promotion: m.promotion } : { from: m.from, to: m.to },
+    );
+  });
 
-  body += result;
+  scratch.header("Result", getResultTag(scratch));
 
-  const headers = [
-    `[Event "Chanakya Game"]`,
-    `[Site "VS Code"]`,
-    `[Date "${formatPgnDate()}"]`,
-    `[White "White"]`,
-    `[Black "Black"]`,
-    `[Result "${result}"]`,
-  ];
-
-  if (startFen !== STANDARD_START_FEN) {
-    headers.push(`[SetUp "1"]`);
-    headers.push(`[FEN "${startFen}"]`);
-  }
-
-  return `${headers.join("\n")}\n\n${body}`.trim();
+  return scratch.pgn();
 }
 
 /** Update the download dialog with current position */
 function updateDownloadContent() {
   const fen = game.fen();
-
-  // Get PGN - if game has no moves, try to build from history
   const pgn = buildPGNFromHistory();
 
   if (fenOutputField) fenOutputField.value = fen;
@@ -200,10 +136,9 @@ function copyToClipboard(text, button) {
   navigator.clipboard
     .writeText(text)
     .then(() => showCopyFeedback(button))
-    .catch((err) => handleError(err, "Failed to copy to clipboard"));
+    .catch((err) => console.error("Failed to copy to clipboard", err));
 }
 
-/** Show copy feedback (3 second acknowledgement) */
 function showCopyFeedback(button) {
   if (!button) return;
 
@@ -245,21 +180,22 @@ export function downloadPGN() {
   URL.revokeObjectURL(url);
 }
 
-// ─── New Game Dialog ──────────────────────────────────────────────────────
+// ─── New Game / Load Dialog ─────────────────────────────────────────────
 
 export function loadFEN(fen) {
   try {
-    game.load(fen);
+    resetGame(fen); // validates + loads — throws on bad FEN
+    resetHeaders();
     renderPosition(game.fen());
     resetHistory(game.fen());
     clearGameEndBadges();
     clearAllMarks();
     updateCheckHighlight();
-    goLast();
+    goLastSafe();
     closeDialogs();
     playGameStartSound();
     uploadError.textContent = "";
-    if(game.isGameOver()) {
+    if (game.isGameOver()) {
       showGameEndBadges();
     }
     return true;
@@ -274,18 +210,28 @@ export function loadPGN(pgn) {
     // Multi-game file/paste → keep the first game only.
     const firstGame = pgn.split(/\n\s*\n(?=\[Event)/)[0];
 
-    // Reset game first
-    game.reset();
-    
-    // Then load PGN
-    game.loadPgn(firstGame);
-    
-    // Get all moves from the loaded game
-    const moves = game.history({ verbose: true });
-    
-    // Now build history from moves (this should handle the GUI updates)
-    buildHistoryFromMoves(moves);
-    
+    // Parse on a scratch instance — never risk corrupting the live `game`
+    // with a PGN that turns out to be malformed halfway through.
+    const scratch = new Chess();
+    scratch.loadPgn(firstGame);
+
+    const verboseMoves = scratch.history({ verbose: true });
+    const scratchHeaders = scratch.header();
+    const customStartFen = scratchHeaders.FEN || START_FEN;
+
+    resetHeaders();
+    setHeaders({
+      Event: scratchHeaders.Event,
+      Site: scratchHeaders.Site,
+      Date: scratchHeaders.Date,
+      Round: scratchHeaders.Round,
+      White: scratchHeaders.White,
+      Black: scratchHeaders.Black,
+      Result: scratchHeaders.Result,
+    });
+
+    buildHistoryFromMoves(verboseMoves, customStartFen);
+
     clearGameEndBadges();
     clearAllMarks();
     updateCheckHighlight();
@@ -293,8 +239,8 @@ export function loadPGN(pgn) {
     playGameStartSound();
 
     uploadError.textContent = "";
-    
-    if(game.isGameOver()) {
+
+    if (game.isGameOver()) {
       showGameEndBadges();
     }
     return true;
@@ -302,6 +248,14 @@ export function loadPGN(pgn) {
     uploadError.textContent = e.message;
     return false;
   }
+}
+
+// goLast is defined in history.js but importing it directly here would
+// create a needless extra binding just for the "did we already build a
+// fresh empty history" case in loadFEN — a no-op when moves.length === 0.
+function goLastSafe() {
+  // resetHistory() already leaves currentIndex at -1 for a fresh game,
+  // which IS "last" when there are no moves yet — nothing further to do.
 }
 
 /** Parse and load from combined input (FEN or PGN) */
@@ -321,10 +275,8 @@ function loadFromInput() {
 
 // ─── File Upload ──────────────────────────────────────────────────────────
 
-/** Handle PGN file upload */
 function handleFileUpload(file) {
   try {
-    // Check if file is empty
     if (file.size === 0) {
       uploadError.textContent = "Error: File is empty (0 bytes). Please select a valid PGN file.";
       return;
@@ -343,13 +295,12 @@ function handleFileUpload(file) {
         loadGameBtn.disabled = !pgnInput.value.trim() && !fenInput.value.trim();
       } catch (innerError) {
         console.error("Error in onload:", innerError);
-        uploadError.textContent =
-          "Error processing file: " + innerError.message;
+        uploadError.textContent = "Error processing file: " + innerError.message;
       }
     };
 
     reader.onerror = () => {
-      console.error("FileReader error:", reader.error); // Debug
+      console.error("FileReader error:", reader.error);
       uploadError.textContent =
         "Error reading file: " + (reader.error?.message || "Unknown error");
     };
@@ -363,7 +314,6 @@ function handleFileUpload(file) {
 
 // ─── Event Listeners ─────────────────────────────────────────────────────
 
-/** Initialize all dialog event listeners */
 export function initDialogs() {
   if (!backdrop) return;
 
@@ -377,7 +327,6 @@ export function initDialogs() {
     btn.addEventListener("click", closeDialogs);
   });
 
-  // Copy buttons
   const fenCopyBtn = document.getElementById("copy-fen");
   const pgnCopyBtn = document.getElementById("copy-pgn");
 
@@ -393,13 +342,11 @@ export function initDialogs() {
     });
   }
 
-  // Download button
   const downloadBtn = document.querySelector(
     "#dialog-export .dialog-footer .btn.primary",
   );
   downloadBtn?.addEventListener("click", downloadPGN);
 
-  // FEN/PGN input sync
   fenInput?.addEventListener("input", () => {
     const hasPgnValue = pgnInput.value.trim();
     const hasFenValue = fenInput.value.trim();
@@ -431,7 +378,6 @@ export function initDialogs() {
     }
   });
 
-  // File upload
   uploadBtn?.addEventListener("click", () => {
     fileInput.click();
   });
@@ -444,19 +390,16 @@ export function initDialogs() {
     fileInput.value = "";
   });
 
-  // Load Game buttons
   loadGameBtn?.addEventListener("click", loadFromInput);
 
   [newGameBtn, document.querySelector(".game-over .new-game")].forEach(
     (btn) => {
       btn?.addEventListener("click", () => {
-        const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         loadFEN(START_FEN);
       });
     },
   );
 
-  // Keyboard shortcuts
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeDialogs();
@@ -468,7 +411,6 @@ export function initDialogs() {
     }
   });
 
-  // Open dialogs from sidebar
   dialogNewgameTrigger?.addEventListener("click", () => {
     fenInput.autofocus = true;
     openDialog("dialog-newgame");
@@ -493,7 +435,6 @@ export function showGameOverDialog(move) {
   const whitePlayer = document.querySelector(".game-over .player.white");
   const blackPlayer = document.querySelector(".game-over .player.black");
 
-  // Clear previous winner state
   whitePlayer?.classList.remove("winner");
   blackPlayer?.classList.remove("winner");
 

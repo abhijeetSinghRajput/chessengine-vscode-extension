@@ -1,69 +1,86 @@
 // history.js
-import { game } from "./game.js";
+// ────────────────────────────────────────────────────────────────────────
+// Move list + navigation cursor (Chess.com / Lichess pattern).
+//
+//   moves        — flat array of chess.js verbose move objects, in order
+//   currentIndex — index of the move currently applied to `game`
+//                  (-1 = start position, moves.length - 1 = live tip)
+//
+// INVARIANT: after any exported function here returns, `game`'s actual
+// position (game.fen(), game.turn(), game.moves(), game.inCheck(), …)
+// exactly equals moves[0..currentIndex] replayed from startFen. Nothing
+// outside this file is allowed to move currentIndex or touch `game`'s
+// position — that's what made the old code impossible to keep in sync.
+//
+// Navigation cost:
+//   • single step (◀ / ▶, autoplay tick)
+//       → O(1): game.move() / game.undo().
+//       → GUI: exactly the squares that changed get a new `data-square`
+//         via movePiece() — your existing CSS transition animates that
+//         natively, no JS animation loop, no full re-render.
+//   • multi-step jump (Home/End, clicking a far-away move, loading a PGN)
+//       → O(n) replay onto `game`, but only ONE full board snap-render
+//         and ONE sound — not N. This matches how lichess/chess.com
+//         behave: jumps snap instantly, they don't animate every
+//         intermediate move.
+// ────────────────────────────────────────────────────────────────────────
+
+import { game, resetGame, makeMove, undoMove, START_FEN } from "./game.js";
 import {
   movePiece,
   addPiece,
   removePiece,
   updateCheckHighlight,
 } from "./piece.js";
-import { setLastMoveMark, clearMarks, clearAllMarks } from "./marks.js";
-import { showGameEndBadges, clearGameEndBadges } from "./gameEndAnimation.js"; // NEW
+import { setLastMoveMark, clearAllMarks } from "./marks.js";
+import { showGameEndBadges, clearGameEndBadges } from "./gameEndAnimation.js";
 import { renderPosition } from "./board.js";
 import { playGameEndSound, playMoveSound } from "./sound.js";
 
-export const moveHistory = [];
-let currentIndex = -1; // -1 = start position
-let onMoveCallback = null; // Callback for when a move is recorded
-let startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+export const moves = []; // chess.js verbose move objects
+let currentIndex = -1;
+let startFen = START_FEN;
+let onMoveCallback = null;
 
 export const getStartFen = () => startFen;
+export const getCurrentIndex = () => currentIndex;
+export const getHistoryLength = () => moves.length;
+export const isLive = () => currentIndex === moves.length - 1;
+
 const getMoveList = () => document.querySelector(".history-moves");
 
-// ─── Set callback for move recording ────────────────────────────────────────
 export const setOnMoveCallback = (callback) => {
   onMoveCallback = callback;
 };
 
-// ─── Are we at the latest move? ────────────────────────────────────────────
-export const isLive = () => {
-  return currentIndex === moveHistory.length - 1;
-};
-
-// ─── Get current index ─────────────────────────────────────────────────────
-export const getCurrentIndex = () => currentIndex;
-
-// ─── Get move history length ──────────────────────────────────────────────
-export const getHistoryLength = () => moveHistory.length;
-
-// ─── Called from executeMove after a real move is played ──────────────────
+// ─── Recording a move played live (or branching from a historical point) ──
+// By the time this runs, `game` has ALREADY been advanced by game.js's
+// makeMove() (see piece.js#executeMove). This function only updates the
+// bookkeeping array — it never touches `game` itself.
 export const recordMove = (move) => {
-  // A new move was played manually/by a bot — auto-play no longer makes sense.
   stopAutoPlay();
 
-  // If we're not at the end, truncate the history (branching)
-  if (currentIndex < moveHistory.length - 1) {
-    moveHistory.splice(currentIndex + 1);
+  // Branching: if we weren't at the tip, everything after currentIndex is
+  // a dead line the moment a new move is played from here — exactly what
+  // chess.com/lichess do.
+  if (currentIndex < moves.length - 1) {
+    moves.splice(currentIndex + 1);
   }
 
-  moveHistory.push({ move, fen: game.fen() });
-  currentIndex = moveHistory.length - 1;
+  moves.push(move);
+  currentIndex = moves.length - 1;
 
   renderHistory();
-  scrollToActive();
-
-  // Call the callback if set
-  if (onMoveCallback) {
-    onMoveCallback(move);
-  }
+  onMoveCallback?.(move);
 };
 
 const syncGameEndBadges = () => {
-  // Only show badges if we're at the latest position (end of history)
-  if (currentIndex !== moveHistory.length - 1) {
+  // Only the LIVE tip shows the winner/draw badges — browsing history
+  // shouldn't re-trigger "Game Over" UI for a position that isn't final.
+  if (!isLive()) {
     clearGameEndBadges();
     return;
   }
-
   if (game.isGameOver()) {
     playGameEndSound();
     showGameEndBadges();
@@ -72,34 +89,46 @@ const syncGameEndBadges = () => {
   }
 };
 
-// ─── Step one move forward (apply GUI) ────────────────────────────────────
+// ─── Single-step forward — O(1), animated ──────────────────────────────
 const stepForward = () => {
-  if (currentIndex >= moveHistory.length - 1) return;
+  if (currentIndex >= moves.length - 1) return;
+
+  const target = moves[currentIndex + 1];
+  const applied = makeMove(target.from, target.to, target.promotion);
+  if (!applied) {
+    console.warn("[history] desync stepping forward — resyncing", target);
+    jumpTo(currentIndex + 1);
+    return;
+  }
 
   currentIndex++;
 
-  const move = moveHistory[currentIndex].move;
-
   clearAllMarks();
-  applyMoveGui(move);
+  applyMoveGui(applied);
   updateCheckHighlight();
   updateActiveHighlight();
   syncGameEndBadges();
 
-  playMoveSound(move, game, move.color);
+  playMoveSound(applied, game, applied.color);
 };
 
-// ─── Step one move backward (reverse GUI) ──────────────────────────────────
+// ─── Single-step back — O(1), animated ─────────────────────────────────
 const stepBack = () => {
   if (currentIndex < 0) return;
 
-  const move = moveHistory[currentIndex].move;
+  const undone = undoMove();
+  if (!undone) {
+    console.warn("[history] desync stepping back — resyncing");
+    jumpTo(currentIndex - 1);
+    return;
+  }
 
-  reverseMoveGui(move);
+  reverseMoveGui(undone);
   currentIndex--;
+
   clearAllMarks();
   if (currentIndex >= 0) {
-    const prev = moveHistory[currentIndex].move;
+    const prev = moves[currentIndex];
     setLastMoveMark(prev.from, prev.to);
   }
 
@@ -107,24 +136,55 @@ const stepBack = () => {
   updateActiveHighlight();
   syncGameEndBadges();
 
-  playMoveSound(move, game, move.color);
+  playMoveSound(undone, game, undone.color);
 };
 
-// ─── Apply a move forward on the GUI ──────────────────────────────────────
-const applyMoveGui = (move) => {
-  // Load the FEN from history to set game state
-  if (currentIndex >= 0 && currentIndex < moveHistory.length) {
-    const entry = moveHistory[currentIndex];
-    if (entry && entry.fen) {
-      try {
-        // todo game.load(entry.fen);
-      } catch (e) {
-        console.warn("Failed to load FEN for move:", entry.fen, e);
-      }
-    }
+// ─── Multi-step jump — reset + replay, ONE snap render, no animation ──
+const jumpTo = (index) => {
+  resetGame(startFen);
+  for (let i = 0; i <= index; i++) {
+    const m = moves[i];
+    makeMove(m.from, m.to, m.promotion);
+  }
+  currentIndex = index;
+
+  renderPosition(game.fen()); // one full snap — cheap (32 DOM nodes, no anim)
+  clearAllMarks();
+  updateCheckHighlight();
+
+  if (index >= 0) {
+    const last = moves[index];
+    setLastMoveMark(last.from, last.to);
+    playMoveSound(last, game, last.color);
   }
 
-  // Apply GUI changes
+  updateActiveHighlight();
+  syncGameEndBadges();
+};
+
+// ─── Public navigation — everything funnels through here ──────────────
+export const navigateTo = (index) => {
+  stopAutoPlay();
+
+  index = Math.max(-1, Math.min(index, moves.length - 1));
+  const delta = index - currentIndex;
+
+  if (delta === 0) return;
+  if (delta === 1) return stepForward();
+  if (delta === -1) return stepBack();
+  jumpTo(index);
+};
+
+export const goForward = () => navigateTo(currentIndex + 1);
+export const goBack = () => navigateTo(currentIndex - 1);
+export const goFirst = () => navigateTo(-1);
+export const goLast = () => navigateTo(moves.length - 1);
+export const goTo = (index) => navigateTo(index);
+
+// ─── GUI-only diff appliers ─────────────────────────────────────────────
+// `game` is ALREADY at the target position by the time these run — these
+// only reconcile the DOM piece layer, they never touch game state.
+const applyMoveGui = (move) => {
   if (move.flags.includes("e")) {
     removePiece(move.to[0] + move.from[1]);
   }
@@ -144,34 +204,7 @@ const applyMoveGui = (move) => {
   setLastMoveMark(move.from, move.to);
 };
 
-// ─── Reverse a move on the GUI ──────────────────────────────────────────────
 const reverseMoveGui = (move) => {
-  // Load the previous FEN to set game state
-  if (currentIndex - 1 >= 0) {
-    const entry = moveHistory[currentIndex - 1];
-    if (entry && entry.fen) {
-      try {
-        // todo game.load(entry.fen);
-      } catch (e) {
-        console.warn("Failed to load FEN for previous position:", entry.fen, e);
-      }
-    }
-  } else {
-    // currentIndex - 1 < 0 → stepping back to the very start of the game,
-    // which may not be the standard position (e.g. a custom FEN was loaded).
-    try {
-      // todo game.load(startFen);
-    } catch (e) {
-      console.warn(
-        "Failed to load start FEN, falling back to default:",
-        startFen,
-        e,
-      );
-      game.reset();
-    }
-  }
-
-  // Apply GUI changes
   if (move.flags.includes("p")) {
     removePiece(move.to);
     addPiece(move.from, move.color + "p");
@@ -191,7 +224,7 @@ const reverseMoveGui = (move) => {
   }
 };
 
-// ─── Auto-play (Play/Pause) ─────────────────────────────────────────────────
+// ─── Auto-play (Play/Pause) ─────────────────────────────────────────────
 let autoPlayTimer = null;
 let playBtn = null;
 const AUTO_PLAY_SPEED = 800; // ms between moves
@@ -212,19 +245,16 @@ export const stopAutoPlay = () => {
 };
 
 const startAutoPlay = () => {
-  if (autoPlayTimer || moveHistory.length === 0) return;
+  if (autoPlayTimer || moves.length === 0) return;
 
-  // If we're at (or past) the last move, restart from the beginning.
-  if (currentIndex >= moveHistory.length - 1) {
-    while (currentIndex >= 0) stepBack();
-    clearAllMarks();
-    updateCheckHighlight();
-    updateActiveHighlight();
+  // Restart from the start with ONE snap, not N animated steps.
+  if (currentIndex >= moves.length - 1) {
+    jumpTo(-1);
   }
 
   setPlayButtonState(true);
   autoPlayTimer = setInterval(() => {
-    if (currentIndex >= moveHistory.length - 1) {
+    if (currentIndex >= moves.length - 1) {
       stopAutoPlay();
       return;
     }
@@ -233,59 +263,23 @@ const startAutoPlay = () => {
 };
 
 export const toggleAutoPlay = () => {
-  if (isAutoPlaying()) {
-    stopAutoPlay();
-  } else {
-    startAutoPlay();
-  }
+  if (isAutoPlaying()) stopAutoPlay();
+  else startAutoPlay();
 };
 
-// Wraps a manual nav function so any user-driven navigation interrupts auto-play.
-const manual =
-  (fn) =>
-  (...args) => {
-    stopAutoPlay();
-    fn(...args);
-  };
+// ─── Move list rendering (pure SAN text — never touches `game`) ────────
+const getStartColor = () => (startFen.split(" ")[1] === "b" ? "b" : "w");
 
-// ─── Public navigation ──────────────────────────────────────────────────────
-export const goForward = manual(() => stepForward());
-export const goBack = manual(() => stepBack());
-export const goFirst = manual(() => {
-  while (currentIndex >= 0) stepBack();
-});
-export const goLast = manual(() => {
-  while (currentIndex < moveHistory.length - 1) stepForward();
-});
-
-export const goTo = manual((index) => {
-  if (index === currentIndex) return;
-  if (index > currentIndex) {
-    while (currentIndex < index) stepForward();
-  } else {
-    while (currentIndex > index) stepBack();
-  }
-});
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-const getStartColor = () => {
-  // FEN field 2 (space-separated) is the active color: "w" or "b"
-  const parts = startFen.split(" ");
-  return parts[1] === "b" ? "b" : "w";
-};
-
-// ─── Render move list ──────────────────────────────────────────────────────
 export const renderHistory = () => {
   const moveList = getMoveList();
   if (!moveList) return;
   moveList.innerHTML = "";
 
   const blackStarts = getStartColor() === "b";
-
   const rows = [];
-  moveHistory.forEach((entry, idx) => {
-    const { move } = entry;
-    const adjustedIdx = blackStarts ? idx + 1 : idx; // shift so pairing matches real move numbers
+
+  moves.forEach((move, idx) => {
+    const adjustedIdx = blackStarts ? idx + 1 : idx;
     const moveNumber = Math.ceil((adjustedIdx + 1) / 2);
     const rowIdx = moveNumber - 1;
     if (!rows[rowIdx]) rows[rowIdx] = { number: moveNumber };
@@ -309,8 +303,6 @@ export const renderHistory = () => {
       if (!entry) {
         const ph = document.createElement("span");
         ph.classList.add("move-btn", "placeholder");
-        // Only happens when the position starts with Black to move —
-        // mirrors chess.com's "1. … b5" style.
         if (side === "white" && row.black) {
           ph.textContent = "…";
           ph.classList.add("ellipsis");
@@ -328,28 +320,21 @@ export const renderHistory = () => {
     }
 
     moveList.append(rowEl);
-    const activeBtn = moveList.querySelector(".move-btn.active");
-
-    activeBtn?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
   });
+
+  scrollToActive();
 };
 
-// ─── Lightweight active-move highlight (no DOM rebuild) ───────────────────
 const updateActiveHighlight = () => {
   const moveList = getMoveList();
   if (!moveList) return;
 
   moveList.querySelector(".move-btn.active")?.classList.remove("active");
-
   if (currentIndex >= 0) {
     moveList
       .querySelector(`.move-btn[data-idx="${currentIndex}"]`)
       ?.classList.add("active");
   }
-
   scrollToActive();
 };
 
@@ -362,25 +347,19 @@ const scrollToActive = () => {
   const btnRect = activeBtn.getBoundingClientRect();
 
   let deltaY = 0;
-  if (btnRect.bottom > listRect.bottom) {
-    deltaY = btnRect.bottom - listRect.bottom; // scroll down to reveal bottom
-  } else if (btnRect.top < listRect.top) {
-    deltaY = btnRect.top - listRect.top; // scroll up to reveal top
-  }
+  if (btnRect.bottom > listRect.bottom) deltaY = btnRect.bottom - listRect.bottom;
+  else if (btnRect.top < listRect.top) deltaY = btnRect.top - listRect.top;
 
   let deltaX = 0;
-  if (btnRect.right > listRect.right) {
-    deltaX = btnRect.right - listRect.right; // scroll right to reveal right edge
-  } else if (btnRect.left < listRect.left) {
-    deltaX = btnRect.left - listRect.left; // scroll left to reveal left edge
-  }
+  if (btnRect.right > listRect.right) deltaX = btnRect.right - listRect.right;
+  else if (btnRect.left < listRect.left) deltaX = btnRect.left - listRect.left;
 
   if (deltaX || deltaY) {
     moveList.scrollBy({ top: deltaY, left: deltaX, behavior: "smooth" });
   }
 };
 
-// ─── Hold-to-repeat nav buttons ──────────────────────────────────────────────
+// ─── Hold-to-repeat nav buttons (unchanged) ────────────────────────────
 let repeatTimer = null;
 let repeatInterval = null;
 
@@ -418,10 +397,11 @@ export const initHistory = () => {
   playBtn?.addEventListener("click", toggleAutoPlay);
 };
 
+// ─── Reset for a brand-new game ────────────────────────────────────────
 export const resetHistory = (fen) => {
   stopAutoPlay();
-  if (fen) startFen = fen;
-  moveHistory.length = 0;
+  startFen = fen || START_FEN;
+  moves.length = 0;
   currentIndex = -1;
   renderHistory();
   document
@@ -429,43 +409,36 @@ export const resetHistory = (fen) => {
     .forEach((el) => el.classList.remove("in-check"));
 };
 
-// ─── Build history from moves (for PGN loading) ──────────────────────────
-
-export const buildHistoryFromMoves = (moves) => {
+// ─── Build history from a loaded PGN's verbose move list ──────────────
+// `fen` lets a PGN with [SetUp "1"]/[FEN "..."] headers start from a
+// custom position instead of always assuming the standard start.
+export const buildHistoryFromMoves = (verboseMoves, fen = START_FEN) => {
   stopAutoPlay();
 
-  // Clear existing history
-  moveHistory.length = 0;
+  moves.length = 0;
   currentIndex = -1;
+  startFen = fen;
 
-  // PGN loading is always from the standard start
-  startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  // Reset game to start
-  game.reset();
+  resetGame(startFen);
 
-  // Clear the board and render initial position
+  verboseMoves.forEach((vm) => {
+    const applied = makeMove(vm.from, vm.to, vm.promotion);
+    if (applied) moves.push(applied);
+  });
+  currentIndex = moves.length - 1;
+
+  // Render exactly ONCE, after the full replay — at the final position.
+  // (Rendering before the loop and never again was the bug: `game` ended
+  // up correct, but the DOM piece layer was left frozen at move 0.)
   renderPosition(game.fen());
   clearAllMarks();
   updateCheckHighlight();
 
-  // Play through each move and record it
-  moves.forEach((move) => {
-    const result = game.move(move);
-    if (result) {
-      moveHistory.push({ move: result, fen: game.fen() });
-      currentIndex = moveHistory.length - 1;
-
-      // Apply the move to the GUI
-      applyMoveGui(result);
-    }
-  });
-
-  // Render the history
   renderHistory();
+  updateActiveHighlight();
+  syncGameEndBadges();
 
-  // Update check highlight
-  updateCheckHighlight();
-
-  // Navigate to the end
-  goLast();
+  if (currentIndex >= 0) {
+    setLastMoveMark(moves[currentIndex].from, moves[currentIndex].to);
+  }
 };

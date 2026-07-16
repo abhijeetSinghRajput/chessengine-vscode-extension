@@ -62,7 +62,6 @@ ALL.forEach(load);
 export const playMoveSound = (move, game, side) => {
   if (!soundEnabled) return;
 
-
   if (move.flags.includes("p")) {
     play("promote");
     return;
@@ -73,6 +72,10 @@ export const playMoveSound = (move, game, side) => {
   }
   if (move.flags.includes("c") || move.flags.includes("e")) {
     play("capture");
+    return;
+  }
+  if (game.inCheck()) {
+    play("move-check");
     return;
   }
   play("move-self");

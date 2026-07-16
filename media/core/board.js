@@ -1,4 +1,11 @@
 // board.js
+// Unchanged from your original — it was never the problem. Included here
+// only so the whole /core folder is drop-in consistent. renderPosition()
+// remains the "full snap" render used by history.js for multi-step jumps;
+// single-step navigation and live play never call this — they only ever
+// touch individual pieces via movePiece()/addPiece()/removePiece() in
+// piece.js, which is what preserves the CSS transition animation.
+
 import { parseFen } from "./fen.js";
 import { addPiece, clearGuiPieces } from "./piece.js";
 
@@ -35,7 +42,6 @@ export const renderPosition = (fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN
 }
 
 export const resetBoard = () => {
-    // clear the board (Piece and marks )
     pieceLayer.childNodes.forEach(e=>e.remove());
     markLayer.childNodes.forEach(e=>e.remove());
 
