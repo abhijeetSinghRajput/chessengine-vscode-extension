@@ -262,6 +262,17 @@ select {
   padding: 8px 0;
 }
 
+.player .player-header{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.mate-in{
+  font-size: 13px;
+  color: #e02828;
+}
+
 .ai-stat {
   display: flex;
   gap: 12px;

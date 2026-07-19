@@ -412,7 +412,9 @@ export function initDialogs() {
   });
 
   dialogNewgameTrigger?.addEventListener("click", () => {
-    fenInput.autofocus = true;
+    setTimeout(() => {
+      fenInput.focus();
+    }, 200);
     openDialog("dialog-newgame");
   });
 

@@ -25,6 +25,7 @@ import {
   resetHistory,
   setOnMoveCallback,
   moves,
+  getCurrentIndex,
 } from "./history.js";
 import { game, resetGame, START_FEN } from "./game.js";
 import { BotController } from "./bot.js";
@@ -161,7 +162,11 @@ export class ChessUI {
   /** Build a UCI move list for the engine payload — sourced from history.js's
    *  `moves` array, always the live/full game regardless of `game`'s cursor. */
   _uciMoveList() {
-    return moves.map((m) => m.from + m.to + (m.promotion || ""));
+    const current = getCurrentIndex();
+
+    return moves
+      .slice(0, current + 1)
+      .map((m) => m.from + m.to + (m.promotion || ""));
   }
 
   _bindBots() {

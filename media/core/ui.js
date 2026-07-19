@@ -28,13 +28,24 @@ export function setThinking(color, on) {
  * @param {"w"|"b"} color
  * @param {number|string} depth
  */
-export function setDepthBadge(color, depth) {
+export function setDepthBadge({ color, depth, mate } = {}) {
   const panel = document.querySelector(`.player[data-color="${color}"]`);
-  if (!panel) return;
-  const badge = panel.querySelector("sup");
-  if (badge) badge.textContent = depth != null ? `d${depth}` : "";
-}
 
+  if (!panel) return;
+
+  const badge = panel.querySelector("sup");
+  const mateBadge = panel.querySelector(".mate-in");
+
+  if (badge) {
+    badge.textContent =
+      depth ? `d${depth}` : "";
+  }
+
+  if (mateBadge) {
+    mateBadge.textContent =
+      mate ? `M ${mate}` : "";
+  }
+}
 /**
  * Update the time taken for a move.
  *

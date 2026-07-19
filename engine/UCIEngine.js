@@ -45,9 +45,15 @@ class UCIEngine extends EventEmitter {
 
     return new Promise((resolve, reject) => {
       try {
-        this.proc = spawn(this.enginePath, this.args, { cwd: require("path").dirname(this.enginePath) });
+        this.proc = spawn(this.enginePath, this.args, {
+          cwd: require("path").dirname(this.enginePath),
+        });
       } catch (err) {
-        return reject(new Error(`Failed to spawn engine at "${this.enginePath}": ${err.message}`));
+        return reject(
+          new Error(
+            `Failed to spawn engine at "${this.enginePath}": ${err.message}`,
+          ),
+        );
       }
 
       this.proc.on("error", (err) => {
@@ -109,8 +115,8 @@ class UCIEngine extends EventEmitter {
     const { fen, moves = [], movetime, depth, wtime, btime, winc, binc } = req;
 
     const posCmd = fen && fen !== "startpos"
-      ? `position fen ${fen}${moves.length ? " moves " + moves.join(" ") : ""}`
-      : `position startpos${moves.length ? " moves " + moves.join(" ") : ""}`;
+        ? `position fen ${fen}${moves.length ? " moves " + moves.join(" ") : ""}`
+        : `position startpos${moves.length ? " moves " + moves.join(" ") : ""}`;
 
     this._send(posCmd);
 
@@ -130,33 +136,58 @@ class UCIEngine extends EventEmitter {
     const startedAt = Date.now();
     let lastDepth = depth || 0;
     let lastNodes = 0;
+    let lastScore = null;
+    let lastMate = null;
+    let lastPV = [];
+
+    // Listen for info updates
+    const onInfo = (info) => {
+      if (info.depth) lastDepth = info.depth;
+      if (info.nodes) lastNodes = info.nodes;
+      if (info.score !== null) lastScore = info.score;
+      if (info.mate !== null) lastMate = info.mate;
+      if (info.pv && info.pv.length) lastPV = info.pv;
+
+      // Emit the latest info for UI updates
+      this.emit("searchInfo", {
+        depth: lastDepth,
+        score: lastScore,
+        mate: lastMate,
+        nodes: lastNodes,
+        time: Date.now() - startedAt,
+        pv: lastPV,
+      });
+    };
+    this.on("info", onInfo);
 
     return new Promise((resolve, reject) => {
       const onLine = (line) => {
         const trimmed = line.trim();
 
-        if (trimmed.startsWith("info")) {
-          const dMatch = trimmed.match(/\bdepth (\d+)/);
-          const nMatch = trimmed.match(/\bnodes (\d+)/);
-          if (dMatch) lastDepth = Number(dMatch[1]);
-          if (nMatch) lastNodes = Number(nMatch[1]);
-          return;
-        }
-
         if (trimmed.startsWith("bestmove")) {
           this.off("_line", onLine);
+          this.off("info", onInfo);
           this._busy = false;
+
           const parts = trimmed.split(/\s+/);
           const bestMove = parts[1];
           if (!bestMove || bestMove === "(none)") {
-            reject(new Error("Engine returned no legal move (checkmate/stalemate?)."));
+            reject(
+              new Error(
+                "Engine returned no legal move (checkmate/stalemate?).",
+              ),
+            );
             return;
           }
+
           resolve({
             bestMove,
             depth: lastDepth,
             time: Date.now() - startedAt,
             nodes: lastNodes,
+            score: lastScore,
+            mate: lastMate,
+            pv: lastPV,
           });
         }
       };
@@ -184,6 +215,47 @@ class UCIEngine extends EventEmitter {
     }, 200);
     this.proc = null;
     this.ready = false;
+  }
+
+  parseInfoLine(trimmed) {
+    const info = {
+      depth: null,
+      score: null,
+      mate: null,
+      nodes: null,
+      time: null,
+      pv: [],
+    };
+
+    // Parse depth
+    const dMatch = trimmed.match(/\bdepth (\d+)/);
+    if (dMatch) info.depth = Number(dMatch[1]);
+
+    // Parse score (cp or mate)
+    const scoreMatch = trimmed.match(/\bscore (cp|mate) ([-\d]+)/);
+    if (scoreMatch) {
+      if (scoreMatch[1] === "cp") {
+        info.score = Number(scoreMatch[2]);
+      } else if (scoreMatch[1] === "mate") {
+        info.mate = Number(scoreMatch[2]);
+      }
+    }
+
+    // Parse nodes
+    const nMatch = trimmed.match(/\bnodes (\d+)/);
+    if (nMatch) info.nodes = Number(nMatch[1]);
+
+    // Parse time
+    const tMatch = trimmed.match(/\btime (\d+)/);
+    if (tMatch) info.time = Number(tMatch[1]);
+
+    // Parse PV
+    const pvMatch = trimmed.match(/\bpv (.+)/);
+    if (pvMatch) {
+      info.pv = pvMatch[1].trim().split(/\s+/);
+    }
+
+    return info;
   }
 
   // ── internals ─────────────────────────────────────────────────────────
@@ -215,9 +287,18 @@ class UCIEngine extends EventEmitter {
   _onData(chunk) {
     this.buffer += chunk;
     const lines = this.buffer.split(/\r?\n/);
-    this.buffer = lines.pop(); // keep incomplete trailing line in buffer
+    this.buffer = lines.pop();
+
     for (const line of lines) {
-      if (line.length) this.emit("_line", line);
+      if (!line.length) continue;
+
+      const trimmed = line.trim();
+      if (trimmed.startsWith("info")) {
+        const info = this.parseInfoLine(trimmed);
+        this.emit("info", info);
+      }
+
+      this.emit("_line", line);
     }
   }
 }

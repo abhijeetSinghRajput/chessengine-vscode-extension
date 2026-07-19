@@ -82,11 +82,15 @@ export class BotController {
     setThinking(this.color, true);
 
     // Clear previous depth and time
-    setDepthBadge(this.color, "");
+    setDepthBadge({
+      color: this.color, 
+      depth: "",
+      mate: "",
+    });
     setMoveTime(this.color, "", "");
 
     try {
-      const { bestMove, depth, time, nodes } = await fetchMove(this.slot, {
+      const { bestMove, depth, time, nodes, mate } = await fetchMove(this.slot, {
         fen,
         moves: uciMoves,
         movetime: this._movetime,
@@ -97,7 +101,11 @@ export class BotController {
       const promotion = bestMove.length === 5 ? bestMove[4] : undefined;
 
       // Update UI with depth and time
-      setDepthBadge(this.color, depth);
+      setDepthBadge({
+        color: this.color, 
+        depth,
+        mate,
+      });
       setMoveTime(this.color, time, nodes);
 
       await this._exec(from, to, promotion);
