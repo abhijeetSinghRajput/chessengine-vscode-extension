@@ -1,16 +1,5 @@
-/**
- * ChessUI.js
- * ──────────────────────────────────────────────────────────────────────────────
- * Single entry point for the chess UI library. Only real change from your
- * original: _uciMoveList() now reads history.js's `moves` array directly
- * instead of game.history({verbose:true}). Both give the same answer once
- * `game` and `currentIndex` are properly kept in sync (see history.js), but
- * reading `moves` directly is the more robust source of truth — it's
- * correct even if a bot's move request somehow lands while mid-navigation,
- * since it doesn't depend on `game`'s current cursor position at all.
- */
-
-import { domBoard, initBoard, renderPosition } from "./board.js";
+// ChessUI.js
+import { coordinates, domBoard, initBoard, renderPosition } from "./board.js";
 import {
   handleBoardClick,
   initPieceLayer,
@@ -29,17 +18,10 @@ import {
 } from "./history.js";
 import { game, resetGame, START_FEN } from "./game.js";
 import { BotController } from "./bot.js";
-import { clearAllMarks } from "./marks.js";
-import { updateCheckHighlight } from "./piece.js";
 import { notifyNewGame } from "./engine.js";
-import { showGameOverDialog } from "./dialog.js";
-import { showGameEndBadges, clearGameEndBadges } from "./gameEndAnimation.js";
+import { buildPGNFromHistory } from "./dialog.js";
 
 export class ChessUI {
-  /**
-   * @param {Object} options
-   * @param {string} [options.endpoint] - unused in the extension build (kept for API compatibility)
-   */
   constructor({ endpoint = "" } = {}) {
     this._endpoint = endpoint;
     this._moveListeners = [];
@@ -65,40 +47,28 @@ export class ChessUI {
       ),
     };
 
-    setOnMoveCallback(() => {
-      this._triggerBots();
-    });
+    setOnMoveCallback(() => this._triggerBots());
   }
-
-  // ── Public API ─────────────────────────────────────────────────────────────
 
   init() {
     initBoard();
     initPieceLayer();
-
-    this._loadPosition();
-    resetHistory(game.fen());
-
+    this._loadPosition(START_FEN, true);
     initHistory();
     this._bindBots();
     this._bindBoardEvents();
     this._bindKeyboard();
   }
 
-  /** Full reset: clear history, reload start position. */
+  // Single reset function - delegates to game.js
   resetGame() {
     clearGameEndBadges();
     this._loadPosition(START_FEN, true);
     notifyNewGame();
   }
 
-  /** Load an arbitrary FEN. */
   loadFen(fen = START_FEN) {
-    clearGameEndBadges();
     resetGame(fen);
-    clearAllMarks();
-    renderPosition(game.fen());
-    updateCheckHighlight();
     resetHistory(game.fen());
   }
 
@@ -112,9 +82,18 @@ export class ChessUI {
 
   flipBoard() {
     domBoard.classList.toggle("flipped");
+    this._flipCoordinates();
   }
 
-  // ── Private ────────────────────────────────────────────────────────────────
+  // Private methods
+  _flipCoordinates() {
+    let texts = domBoard.classList.contains("flipped")
+      ? "12345678hgfedcba"
+      : "87654321abcdefgh";
+    for (let i = 0; i < coordinates.length; i++) {
+      coordinates[i].textContent = texts[i];
+    }
+  }
 
   _loadPosition(fen = START_FEN, resetHistoryFlag = false) {
     try {
@@ -123,12 +102,9 @@ export class ChessUI {
       console.error(`Invalid FEN: ${fen}`, e);
       resetGame(START_FEN);
     }
-
     if (resetHistoryFlag) {
       resetHistory(game.fen());
     }
-
-    renderPosition(game.fen());
   }
 
   async _executeMoveAndNotify(from, to, promotion) {
@@ -151,19 +127,13 @@ export class ChessUI {
 
   async _triggerBots() {
     if (game.isGameOver()) return;
-
-    // Small delay to ensure the move is fully processed
     await new Promise((resolve) => setTimeout(resolve, 10));
-
     await this._bots.w.maybeMove();
     await this._bots.b.maybeMove();
   }
 
-  /** Build a UCI move list for the engine payload — sourced from history.js's
-   *  `moves` array, always the live/full game regardless of `game`'s cursor. */
   _uciMoveList() {
     const current = getCurrentIndex();
-
     return moves
       .slice(0, current + 1)
       .map((m) => m.from + m.to + (m.promotion || ""));
@@ -176,7 +146,6 @@ export class ChessUI {
 
   _bindBoardEvents() {
     domBoard.addEventListener("click", () => handleBoardClick());
-
     document.querySelector("button.flip")?.addEventListener("click", () => {
       this.flipBoard();
     });

@@ -10,9 +10,7 @@ let soundEnabled = true;
 export function initSound() {
   const button = document.querySelector("#sound-toggle");
 
-  soundEnabled = JSON.parse(
-    localStorage.getItem("chanakya-sound") ?? "true"
-  );
+  soundEnabled = JSON.parse(localStorage.getItem("chanakya-sound") ?? "true");
 
   button?.classList.toggle("off", !soundEnabled);
 
@@ -21,10 +19,7 @@ export function initSound() {
 
     button.classList.toggle("off", !soundEnabled);
 
-    localStorage.setItem(
-      "chanakya-sound",
-      JSON.stringify(soundEnabled)
-    );
+    localStorage.setItem("chanakya-sound", JSON.stringify(soundEnabled));
   });
 }
 
@@ -47,9 +42,18 @@ export const play = (name) => {
 
 // Preload all sounds up front
 const ALL = [
-  "capture","castle","game-end","game-start",
-  "illegal","move-check","move-opponent","move-self",
-  "notify","premove","promote","tenseconds",
+  "capture",
+  "castle",
+  "game-end",
+  "game-start",
+  "illegal",
+  "move-check",
+  "move-opponent",
+  "move-self",
+  "notify",
+  "premove",
+  "promote",
+  "tenseconds",
 ];
 ALL.forEach(load);
 
@@ -62,26 +66,27 @@ ALL.forEach(load);
 export const playMoveSound = (move, game, side) => {
   if (!soundEnabled) return;
 
+  // Primary sound based on move type
   if (move.flags.includes("p")) {
     play("promote");
-    return;
-  }
-  if (move.flags.includes("k") || move.flags.includes("q")) {
+  } else if (move.flags.includes("k") || move.flags.includes("q")) {
     play("castle");
-    return;
-  }
-  if (move.flags.includes("c") || move.flags.includes("e")) {
+  } else if (move.flags.includes("c") || move.flags.includes("e")) {
     play("capture");
-    return;
+    // If capture and check, play check after capture
+    if (game.inCheck()) {
+      setTimeout(() => play("move-check"), 200);
+    }
+  } else {
+    play("move-self");
+    // If normal move and check, play check after
+    if (game.inCheck()) {
+      setTimeout(() => play("move-check"), 200);
+    }
   }
-  if (game.inCheck()) {
-    play("move-check");
-    return;
-  }
-  play("move-self");
 };
 
-export const playIllegal        = () => soundEnabled && play("illegal");
+export const playIllegal = () => soundEnabled && play("illegal");
 export const playGameStartSound = () => soundEnabled && play("game-start");
-export const playGameEndSound   = () => soundEnabled && play("game-end");
-export const playCheckSount     = () => soundEnabled && play("move-check");
+export const playGameEndSound = () => soundEnabled && play("game-end");
+export const playCheckSount = () => soundEnabled && play("move-check");

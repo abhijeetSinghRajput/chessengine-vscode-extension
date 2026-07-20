@@ -1,6 +1,5 @@
 // board.js
 // Unchanged from your original — it was never the problem. Included here
-// only so the whole /core folder is drop-in consistent. renderPosition()
 // remains the "full snap" render used by history.js for multi-step jumps;
 // single-step navigation and live play never call this — they only ever
 // touch individual pieces via movePiece()/addPiece()/removePiece() in
@@ -14,6 +13,7 @@ export const pieceLayer = domBoard.querySelector('#board .piece-layer')
 export const squareLayer = domBoard.querySelector('#board .square-layer')
 export const markLayer = domBoard.querySelector('#board .mark-layer')
 export const gameEndLayer = domBoard.querySelector('#board .gameend-layer')
+export const coordinates = document.querySelectorAll('.coordinates *');
 
 export const FILES = 'abcdefgh';
 
@@ -39,12 +39,4 @@ export const renderPosition = (fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN
         const piece = position[sq];
         addPiece(sq, piece);
     }
-}
-
-export const resetBoard = () => {
-    pieceLayer.childNodes.forEach(e=>e.remove());
-    markLayer.childNodes.forEach(e=>e.remove());
-
-    clearGuiPieces();
-    renderPosition();
 }
