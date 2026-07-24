@@ -17,9 +17,16 @@
 const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
-const { EnginePool } = require("./engine/EnginePool");
 const { SidebarProvider } = require("./sidebarProvider");
 const { HistoryStore } = require("./historyStore");
+const { EnginePool } = require("./engine/EnginePool");
+const { EngineRegistry } = require("./engine/EngineRegistry");
+const {
+  BookRegistry,
+  LARGE_BOOK_WARNING_BYTES,
+} = require("./engine/BookRegistry");
+const { currentFenFromPayload } = require("./engine/fen");
+const { BookPool } = require("./engine/BookPool");
 
 let pool = null;
 let panel = null;
@@ -27,9 +34,15 @@ let panelReady = false;
 let pendingAction = null; // { command, action, fen?, pgn? } — flushed once panelReady
 let sidebarProvider = null;
 let historyStore = null;
+let engineRegistry = null;
+let bookRegistry = null;
+let bookPool = null;
 
 function activate(context) {
   historyStore = new HistoryStore(context.globalState);
+  engineRegistry = new EngineRegistry(context);
+  bookRegistry = new BookRegistry(context);
+  bookPool = new BookPool();
 
   const openBoard = vscode.commands.registerCommand("chess.openBoard", () => {
     createOrRevealPanel(context);
@@ -172,36 +185,34 @@ function getNonce() {
 
 // ── Engine bridge ───────────────────────────────────────────────────────
 
-function resolveEnginePath(extensionPath) {
-  const configured = vscode.workspace
-    .getConfiguration("chanakya")
-    .get("enginePath", "")
-    .trim();
-  if (configured) return configured;
+function resolveEnginePathForSlot(slot, context) {
+  const engineId = context.globalState.get(
+    `chanakya.selectedEngine.${slot}`,
+    "builtin",
+  );
+  const enginePath = engineRegistry.resolvePath(
+    engineId,
+    context.extensionPath,
+  );
 
-  const platformExe = process.platform === "win32" ? "chess.exe" : "chess";
-  return path.join(extensionPath, "engine", platformExe);
+  if (!fs.existsSync(enginePath)) {
+    throw new Error(
+      `Engine executable not found at "${enginePath}". ` +
+        `Pick a different engine in Settings, or reinstall it via "Add UCI Engine".`,
+    );
+  }
+  return enginePath;
 }
 
 function ensurePool(context) {
   if (pool) return pool;
-
-  const enginePath = resolveEnginePath(context.extensionPath);
-
-  if (!fs.existsSync(enginePath)) {
-    vscode.window.showErrorMessage(
-      `Chanakya: engine executable not found at "${enginePath}". ` +
-        `Set "chanakya.enginePath" in Settings, or place your engine at extension/engine/${
-          process.platform === "win32" ? "chess.exe" : "chess"
-        }.`,
-    );
-    throw new Error("Engine executable not found: " + enginePath);
-  }
-
   const maxInstances = vscode.workspace
     .getConfiguration("chanakya")
     .get("maxEngineInstances", 2);
-  pool = new EnginePool(enginePath, maxInstances);
+  pool = new EnginePool(
+    (slot) => resolveEnginePathForSlot(slot, context),
+    maxInstances,
+  );
   return pool;
 }
 
@@ -211,7 +222,40 @@ async function handleMessage(msg, panel, context) {
   switch (msg.command) {
     case "getMove": {
       const { id, payload, slot } = msg;
+      const side = slot === "b" ? "b" : "w"; // slot is the bot's color ("w"/"b")
+
       try {
+        // ── Book probe ──────────────────────────────────────────────────
+        const bookId = context.globalState.get(
+          `chanakya.selectedBook.${side}`,
+          "default",
+        );
+        const bookPath = bookRegistry.resolvePath(
+          bookId,
+          context.extensionPath,
+        );
+
+        if (bookPath && fs.existsSync(bookPath)) {
+          const currentFen = currentFenFromPayload(payload.fen, payload.moves);
+          const bookMove = bookPool.probe(bookPath, currentFen);
+
+          if (bookMove) {
+            panel.webview.postMessage({
+              command: "bestMove",
+              id,
+              data: {
+                bestMove: bookMove.uci,
+                depth: 0,
+                time: 0,
+                nodes: 0,
+                source: "book",
+              },
+            });
+            break;
+          }
+        }
+
+        // ── Engine fallback ─────────────────────────────────────────────
         const enginePool = ensurePool(context);
         const cfg = vscode.workspace.getConfiguration("chanakya");
         const defaults = {
@@ -222,7 +266,11 @@ async function handleMessage(msg, panel, context) {
           ...payload,
           ...defaults,
         });
-        panel.webview.postMessage({ command: "bestMove", id, data: result });
+        panel.webview.postMessage({
+          command: "bestMove",
+          id,
+          data: { ...result, source: "engine" },
+        });
       } catch (err) {
         panel.webview.postMessage({
           command: "engineError",
@@ -320,16 +368,179 @@ async function handleMessage(msg, panel, context) {
       const choice = await vscode.window.showWarningMessage(
         "Delete all saved games?",
         { modal: true },
-        "Delete"
+        "Delete",
       );
 
       if (choice === "Delete") {
         historyStore.clearHistory();
 
-        sidebarProvider?.postHistory(
-          historyStore.getSidebarData()
-        );
+        sidebarProvider?.postHistory(historyStore.getSidebarData());
       }
+
+      break;
+    }
+
+    case "addUciEngine": {
+      try {
+        const uri = await vscode.window.showOpenDialog({
+          canSelectMany: false,
+          filters:
+            process.platform === "win32" ? { Executable: ["exe"] } : undefined,
+          title: "Select UCI engine executable",
+        });
+        if (!uri?.[0]) break;
+
+        const entry = await engineRegistry.addFromPath(uri[0].fsPath);
+        panel.webview.postMessage({
+          command: "engineListUpdated",
+          engines: engineRegistry.list(),
+          added: entry,
+        });
+      } catch (err) {
+        vscode.window.showErrorMessage(`Chanakya: ${err.message}`);
+        panel.webview.postMessage({
+          command: "engineAddFailed",
+          error: err.message,
+        });
+      }
+      break;
+    }
+
+    case "selectEngine": {
+      const { side, engineId } = msg; // side: "w" | "b"
+      await context.globalState.update(
+        `chanakya.selectedEngine.${side}`,
+        engineId,
+      );
+      break;
+    }
+
+    case "requestEngineList": {
+      panel.webview.postMessage({
+        command: "engineListUpdated",
+        engines: engineRegistry.list(),
+        selected: {
+          w: context.globalState.get("chanakya.selectedEngine.w", "builtin"),
+          b: context.globalState.get("chanakya.selectedEngine.b", "builtin"),
+        },
+      });
+      break;
+    }
+
+    case "addBook": {
+      try {
+        const uri = await vscode.window.showOpenDialog({
+          canSelectMany: false,
+          filters: { "Polyglot Book": ["bin"] },
+          title: "Select opening book (.bin)",
+        });
+        if (!uri?.[0]) break;
+
+        const srcPath = uri[0].fsPath;
+        const info = await bookRegistry.inspect(srcPath); // throws on bad file, BEFORE copying
+
+        if (info.isLarge) {
+          const mb = (info.size / (1024 * 1024)).toFixed(0);
+          const choice = await vscode.window.showWarningMessage(
+            `This book is ${mb}MB. It'll be copied into extension storage. Continue?`,
+            { modal: true },
+            "Add Book",
+          );
+          if (choice !== "Add Book") break;
+        }
+
+        const entry = await bookRegistry.addFromPath(srcPath);
+        panel.webview.postMessage({
+          command: "bookListUpdated",
+          books: bookRegistry.list(),
+          added: entry,
+        });
+      } catch (err) {
+        vscode.window.showErrorMessage(`Chanakya: ${err.message}`);
+        panel.webview.postMessage({
+          command: "bookAddFailed",
+          error: err.message,
+        });
+      }
+      break;
+    }
+
+    case "deleteBook": {
+      const { bookId, bookName } = msg;
+      const choice = await vscode.window.showWarningMessage(
+        `Delete book "${bookName}"? This can't be undone.`,
+        { modal: true },
+        "Delete",
+      );
+      if (choice === "Delete") {
+        await bookRegistry.remove(bookId);
+        panel.webview.postMessage({
+          command: "bookListUpdated",
+          books: bookRegistry.list(),
+        });
+      }
+      break;
+    }
+
+    case "deleteEngine": {
+      const { engineId, engineName } = msg;
+      const choice = await vscode.window.showWarningMessage(
+        `Delete engine "${engineName}"? This can't be undone.`,
+        { modal: true },
+        "Delete",
+      );
+      if (choice === "Delete") {
+        await engineRegistry.remove(engineId);
+        panel.webview.postMessage({
+          command: "engineListUpdated",
+          engines: engineRegistry.list(),
+          selected: {
+            w: context.globalState.get("chanakya.selectedEngine.w", "builtin"),
+            b: context.globalState.get("chanakya.selectedEngine.b", "builtin"),
+          },
+        });
+      }
+      break;
+    }
+
+    case "selectBook": {
+      const { side, bookId } = msg; // side: "w" | "b"
+      await context.globalState.update(`chanakya.selectedBook.${side}`, bookId);
+      break;
+    }
+
+    case "requestBookList": {
+      panel.webview.postMessage({
+        command: "bookListUpdated",
+        books: bookRegistry.list(),
+        selected: {
+          w: context.globalState.get("chanakya.selectedBook.w", "default"),
+          b: context.globalState.get("chanakya.selectedBook.b", "default"),
+        },
+      });
+      break;
+    }
+
+    case "hasBookMove": {
+      const { fen, side, to } = msg;
+
+      const bookId = context.globalState.get(
+        `chanakya.selectedBook.${side}`,
+        "default",
+      );
+
+      const bookPath = bookRegistry.resolvePath(bookId, context.extensionPath);
+
+      const hasBookMove =
+        bookPath && fs.existsSync(bookPath)
+          ? bookPool.hasBookMove(bookPath, fen)
+          : false;
+
+      panel.webview.postMessage({
+        command: "hasBookMoveResult",
+        hasBookMove,
+        to,
+      });
 
       break;
     }
@@ -340,4 +551,3 @@ async function handleMessage(msg, panel, context) {
 }
 
 module.exports = { activate, deactivate };
-

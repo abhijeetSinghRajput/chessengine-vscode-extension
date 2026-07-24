@@ -19,6 +19,7 @@ import { updateCheckHighlight } from "./piece.js";
 import { clearAllMarks } from "./marks.js";
 import { playGameStartSound } from "./sound.js";
 import { clearGameEndBadges, showGameEndBadges } from "./gameEndAnimation.js";
+import { getVsCodeApi } from "./vscodeApi.js";
 
 // DOM References
 const backdrop = document.getElementById("backdrop");
@@ -30,10 +31,26 @@ const loadGameBtn = document.getElementById("load-game");
 const newGameBtn = document.getElementById("new-game");
 const dialogNewgameTrigger = document.getElementById("dialog-newgame-trigger");
 const dialogExportTrigger = document.getElementById("dialog-export-trigger");
+const dialogSettingsTrigger = document.getElementById(
+  "dialog-settings-trigger",
+);
 const uploadError = document.getElementById("upload-error");
 const exportError = document.getElementById("export-error");
 const fenOutputField = document.getElementById("fen-output");
 const pgnOutputField = document.getElementById("pgn-output");
+
+const whiteEngineSelect = document.getElementById("white-engine");
+const blackEngineSelect = document.getElementById("black-engine");
+const addEngineBtn = document.getElementById("add-engine-btn");
+const engineError = document.getElementById("engine-error");
+
+const engineListEl = document.querySelector("#tab-engines .list");
+const bookListEl = document.querySelector("#tab-books .list");
+const whiteBookSelect = document.getElementById("white-book");
+const blackBookSelect = document.getElementById("black-book");
+const addBookBtn = document.getElementById("add-book-btn");
+
+const vscode = getVsCodeApi();
 
 let activeDialog = null;
 
@@ -86,6 +103,133 @@ export function buildPGNFromHistory() {
   });
   scratch.header("Result", getResultTag(scratch));
   return scratch.pgn();
+}
+
+function renderEngineOptions(engines = [], selected = {}) {
+  [
+    { select: whiteEngineSelect, side: "w" },
+    { select: blackEngineSelect, side: "b" },
+  ].forEach(({ select, side }) => {
+    if (!select) return;
+    const current = selected[side] ?? select.value ?? "builtin";
+    select.innerHTML = "";
+
+    const builtinOpt = document.createElement("option");
+    builtinOpt.value = "builtin";
+    builtinOpt.textContent = "Chanakya (built-in)";
+    select.appendChild(builtinOpt);
+
+    engines.forEach((e) => {
+      const opt = document.createElement("option");
+      opt.value = e.id;
+      opt.textContent = e.name;
+      select.appendChild(opt);
+    });
+
+    select.value = current;
+  });
+}
+
+function requestEngineList() {
+  vscode?.postMessage({ command: "requestEngineList" });
+}
+
+function requestBookList() {
+  vscode?.postMessage({ command: "requestBookList" });
+}
+
+function trashIconSvg() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/>
+    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+}
+
+function renderEngineList(engines = []) {
+  if (!engineListEl) return;
+  engineListEl.innerHTML = `
+    <div class="list-row">
+      <div class="list-info">
+        <div class="title">⭐ Chanakya (built-in)</div>
+        <div class="subtitle">Built-in</div>
+      </div>
+    </div>`;
+  engines.forEach((e) => {
+    const row = document.createElement("div");
+    row.className = "list-row";
+    row.innerHTML = `
+      <div class="list-info">
+        <div class="title">${e.name}</div>
+        <div class="subtitle">${e.fileName}</div>
+      </div>
+      <button class="btn icon destructive" data-id="${e.id}" data-name="${e.name}">${trashIconSvg()}</button>`;
+    row.querySelector("button")?.addEventListener("click", (ev) => {
+      const { id, name } = ev.currentTarget.dataset;
+      vscode?.postMessage({
+        command: "deleteEngine",
+        engineId: id,
+        engineName: name,
+      });
+    });
+    engineListEl.appendChild(row);
+  });
+}
+
+function renderBookList(books = []) {
+  if (!bookListEl) return;
+  bookListEl.innerHTML = `
+    <div class="list-row">
+      <div class="list-info">
+        <div class="title">Default Book</div>
+        <div class="subtitle">performance.bin</div>
+      </div>
+    </div>`;
+  books.forEach((b) => {
+    const row = document.createElement("div");
+    row.className = "list-row";
+    row.innerHTML = `
+      <div class="list-info">
+        <div class="title">${b.name}</div>
+        <div class="subtitle">${b.fileName}</div>
+      </div>
+      <button class="btn icon destructive" data-id="${b.id}" data-name="${b.name}">${trashIconSvg()}</button>`;
+    row.querySelector("button")?.addEventListener("click", (ev) => {
+      const { id, name } = ev.currentTarget.dataset;
+      vscode?.postMessage({
+        command: "deleteBook",
+        bookId: id,
+        bookName: name,
+      });
+    });
+    bookListEl.appendChild(row);
+  });
+}
+
+function renderBookOptions(books = [], selected = {}) {
+  [
+    { select: whiteBookSelect, side: "w" },
+    { select: blackBookSelect, side: "b" },
+  ].forEach(({ select, side }) => {
+    if (!select) return;
+    const current = selected[side] ?? "default";
+    select.innerHTML = "";
+    [
+      ["none", "None"],
+      ["default", "Default Book"],
+    ].forEach(([value, label]) => {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = label;
+      select.appendChild(opt);
+    });
+    books.forEach((b) => {
+      const opt = document.createElement("option");
+      opt.value = b.id;
+      opt.textContent = b.name;
+      select.appendChild(opt);
+    });
+    select.value = current;
+  });
 }
 
 function updateDownloadContent() {
@@ -363,7 +507,93 @@ export function initDialogs() {
     ?.addEventListener("click", () => {
       openDialog("dialog-export");
     });
+
+  dialogSettingsTrigger?.addEventListener("click", () => {
+    openDialog("dialog-settings");
+    requestEngineList();
+    requestBookList();
+  });
+
+  addEngineBtn?.addEventListener("click", () => {
+    if (engineError) engineError.textContent = "";
+    vscode?.postMessage({ command: "addUciEngine" });
+  });
+  whiteEngineSelect?.addEventListener("change", () => {
+    vscode?.postMessage({
+      command: "selectEngine",
+      side: "w",
+      engineId: whiteEngineSelect.value,
+    });
+  });
+  blackEngineSelect?.addEventListener("change", () => {
+    vscode?.postMessage({
+      command: "selectEngine",
+      side: "b",
+      engineId: blackEngineSelect.value,
+    });
+  });
+
+  addBookBtn?.addEventListener("click", () => {
+    vscode?.postMessage({ command: "addBook" });
+  });
+
+  whiteBookSelect?.addEventListener("change", () => {
+    vscode?.postMessage({
+      command: "selectBook",
+      side: "w",
+      bookId: whiteBookSelect.value,
+    });
+  });
+  blackBookSelect?.addEventListener("change", () => {
+    vscode?.postMessage({
+      command: "selectBook",
+      side: "b",
+      bookId: blackBookSelect.value,
+    });
+  });
+
+  addBookBtn?.addEventListener("click", () => {
+    vscode?.postMessage({ command: "addBook" });
+  });
+
+  whiteBookSelect?.addEventListener("change", () => {
+    vscode?.postMessage({
+      command: "selectBook",
+      side: "w",
+      bookId: whiteBookSelect.value,
+    });
+  });
+  blackBookSelect?.addEventListener("change", () => {
+    vscode?.postMessage({
+      command: "selectBook",
+      side: "b",
+      bookId: blackBookSelect.value,
+    });
+  });
 }
+
+window.addEventListener("message", (event) => {
+  const msg = event.data;
+  if (!msg || typeof msg !== "object") return;
+
+  if (msg.command === "engineListUpdated") {
+    renderEngineOptions(msg.engines, msg.selected || {});
+    renderEngineList(msg.engines);
+  }
+
+  if (msg.command === "engineAddFailed") {
+    if (engineError)
+      engineError.textContent = msg.error || "Failed to add engine.";
+  }
+  if (msg.command === "bookListUpdated") {
+    renderBookOptions(msg.books, msg.selected || {});
+    renderBookList(msg.books);
+  }
+  if (msg.command === "bookAddFailed") {
+    const bookError = document.getElementById("book-error"); // add this element next to add-book-btn, mirroring engine-error
+    if (bookError) bookError.textContent = msg.error || "Failed to add book.";
+  }
+});
 
 export default {
   openDialog,

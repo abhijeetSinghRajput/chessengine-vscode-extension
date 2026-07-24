@@ -29,6 +29,27 @@
   width: calc(100% / 8);
 }
 
+.effect {
+    --icon-bg-scale: 1;
+    background-clip: content-box;
+    border-radius: 50%;
+    box-sizing: border-box;
+    height: 12.5%;
+    left: 5.5%;
+    padding: 3.75%;
+    pointer-events: none;
+    position: absolute;
+    top: -5.5%;
+    width: 12.5%;
+    z-index: 100;
+}
+
+.effect:not([data-square]),
+.effect[data-square=""] {
+    display: none;
+}
+
+
 /* ─── Selected highlight ──────────────────────────────────────────────────── */
 .mark-layer .selected-highlight {
   background-color: var(--highlight-color);

@@ -19,6 +19,7 @@ import { recordMove } from "./history.js";
 import { buildPGNFromHistory, showGameOverDialog } from "./dialog.js";
 import { showGameEndBadges } from "./gameEndAnimation.js";
 import { getVsCodeApi } from "./vscodeApi.js";
+import { updateBookMove } from "./ui.js";
 
 export const guiPieces = {};
 export const clearGuiPieces = () => {
@@ -127,8 +128,9 @@ export const executeMove = async (from, to, promotion) => {
     setSelected(null);
     return null;
   }
-
+  
   movePiece(from, to);
+  updateBookMove(to);
 
   if (move.flags.includes("e")) handleEnPassant(move);
   if (move.flags.includes("k") || move.flags.includes("q")) handleCastling(move);

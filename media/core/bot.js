@@ -90,7 +90,7 @@ export class BotController {
     setMoveTime(this.color, "", "");
 
     try {
-      const { bestMove, depth, time, nodes, mate } = await fetchMove(this.slot, {
+      const { bestMove, depth, time, nodes, mate, source } = await fetchMove(this.slot, {
         fen,
         moves: uciMoves,
         movetime: this._movetime,

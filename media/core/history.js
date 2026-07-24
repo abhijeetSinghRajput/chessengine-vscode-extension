@@ -36,6 +36,7 @@ import { setLastMoveMark, clearAllMarks } from "./marks.js";
 import { showGameEndBadges, clearGameEndBadges } from "./gameEndAnimation.js";
 import { renderPosition } from "./board.js";
 import { playGameEndSound, playMoveSound } from "./sound.js";
+import { effectSquare, updateBookMove } from "./ui.js";
 
 export const moves = []; // chess.js verbose move objects
 let currentIndex = -1;
@@ -130,6 +131,10 @@ const stepBack = () => {
   if (currentIndex >= 0) {
     const prev = moves[currentIndex];
     setLastMoveMark(prev.from, prev.to);
+    updateBookMove(prev.to);
+  }
+  else{
+    effectSquare.dataset.square = "";
   }
 
   updateCheckHighlight();
@@ -197,11 +202,13 @@ const applyMoveGui = (move) => {
     removePiece(move.to);
   }
   movePiece(move.from, move.to);
+  
   if (move.flags.includes("p")) {
     removePiece(move.to);
     addPiece(move.to, move.color + move.promotion);
   }
   setLastMoveMark(move.from, move.to);
+  updateBookMove(move.to);
 };
 
 const reverseMoveGui = (move) => {

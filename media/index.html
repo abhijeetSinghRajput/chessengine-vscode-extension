@@ -110,7 +110,7 @@
               <path d="M15 13v2" />
               <path d="M9 13v2" />
             </svg>
-            <div class="toggle-btn" title="Toggle AI" id="blackBot"></div>
+            <div class="toggle-btn" title="Engine Move" id="blackBot"></div>
           </div>
         </div>
 
@@ -120,6 +120,26 @@
           <div class="layer piece-layer"></div>
           <div class="layer mark-layer"></div>
           <div class="layer gameend-layer"></div>
+          <div class="effect" data-square="">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class=""
+              width="100%"
+              height="100%"
+              viewBox="0 0 18 19"
+            >
+              <g id="book">
+                <path class="icon-shadow" opacity="0.3" d="M9,.5a9,9,0,1,0,9,9A9,9,0,0,0,9,.5Z"></path>
+                <path class="icon-background" fill="#D5A47D" d="M9,0a9,9,0,1,0,9,9A9,9,0,0,0,9,0Z"></path>
+                <g>
+                  <path class="icon-component-shadow" opacity="0.3" isolation="isolate" d="M8.45,5.9c-1-.75-2.51-1.09-4.83-1.09H2.54v8.71H3.62a8.16,8.16,0,0,1,4.83,1.17Z"></path>
+                  <path class="icon-component-shadow" opacity="0.3" isolation="isolate" d="M9.54,14.69a8.14,8.14,0,0,1,4.84-1.17h1.08V4.81H14.38c-2.31,0-3.81.34-4.84,1.09Z"></path>
+                  <path class="icon-component" fill="#fff" d="M8.45,5.4c-1-.75-2.51-1.09-4.83-1.09H3V13h.58a8.09,8.09,0,0,1,4.83,1.17Z"></path>
+                  <path class="icon-component" fill="#fff" d="M9.54,14.19A8.14,8.14,0,0,1,14.38,13H15V4.31h-.58c-2.31,0-3.81.34-4.84,1.09Z"></path>
+                </g>
+              </g>
+            </svg>
+          </div>
 
           <div class="promotion-window white">
             <div class="piece wq"></div>
@@ -263,7 +283,7 @@
               <path d="M15 13v2" />
               <path d="M9 13v2" />
             </svg>
-            <div class="toggle-btn" title="Toggle AI" id="whiteBot"></div>
+            <div class="toggle-btn" title="Engine Move" id="whiteBot"></div>
           </div>
         </div>
       </div>
@@ -310,6 +330,29 @@
               <circle cx="18" cy="19" r="3" />
               <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
               <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
+            </svg>
+          </button>
+          <button
+            title="Settings"
+            id="dialog-settings-trigger"
+            class="btn secondary"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-settings-icon lucide-settings"
+            >
+              <path
+                d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+              />
+              <circle cx="12" cy="12" r="3" />
             </svg>
           </button>
           <button
@@ -504,7 +547,7 @@
         <div class="dialog-content">
           <div class="fen-content">
             <div class="flex justify-between items-center">
-              <p>FEN</p>
+              <p class="label">FEN</p>
               <button class="btn icon" id="copy-fen" title="Copy Fen">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -543,7 +586,7 @@
           </div>
           <div class="pgn-content">
             <div class="flex justify-between items-center">
-              <p>PGN</p>
+              <p class="label">PGN</p>
               <button class="btn icon" id="copy-pgn" title="Copy PGN">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -731,6 +774,165 @@
         <div class="buttons">
           <button class="btn export secondary">Share</button>
           <button class="btn new-game primary">New Game</button>
+        </div>
+      </div>
+
+      <!-- ========== DIALOG: SETTINGS ========== -->
+      <div class="dialog settings" id="dialog-settings">
+        <div class="dialog-header">
+          <span class="title">Settings</span>
+          <button class="dialog-close">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="tab-list">
+          <button class="tab-trigger active" data-tab="general">General</button>
+          <button class="tab-trigger" data-tab="engines">Engines</button>
+          <button class="tab-trigger" data-tab="books">Books</button>
+        </div>
+
+        <div class="dialog-content tab-panel active" id="tab-general">
+          <div>
+            <p class="label">Board theme</p>
+            <div id="theme-set">
+              <button class="active" data-theme="default" title="Default">
+                <span style="background: #ececd1"></span>
+                <span style="background: #749553"></span>
+                <span style="background: #749553"></span>
+                <span style="background: #ececd1"></span>
+              </button>
+
+              <button data-theme="gray" title="Gray">
+                <span style="background: #efefef"></span>
+                <span style="background: #b0b0b0"></span>
+                <span style="background: #b0b0b0"></span>
+                <span style="background: #efefef"></span>
+              </button>
+
+              <button data-theme="blue" title="Blue">
+                <span style="background: #e8ebef"></span>
+                <span style="background: #4b7399"></span>
+                <span style="background: #4b7399"></span>
+                <span style="background: #e8ebef"></span>
+              </button>
+
+              <button data-theme="light-wood" title="Light Wood">
+                <span style="background: #e9c18a"></span>
+                <span style="background: #b38b5d"></span>
+                <span style="background: #b38b5d"></span>
+                <span style="background: #e9c18a"></span>
+              </button>
+
+              <button data-theme="dark-wood" title="Dark Wood">
+                <span style="background: #d9b38c"></span>
+                <span style="background: #7d512e"></span>
+                <span style="background: #7d512e"></span>
+                <span style="background: #d9b38c"></span>
+              </button>
+
+              <button data-theme="dark-blue" title="Dark Blue">
+                <span style="background: #e0e0e8"></span>
+                <span style="background: #3c465a"></span>
+                <span style="background: #3c465a"></span>
+                <span style="background: #e0e0e8"></span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p class="label">Engine</p>
+
+            <div class="engine-section">
+              <div class="engine-row">
+                <label>White</label>
+
+                <select id="white-engine">
+                  <option value="builtin">Chanakya (built-in)</option>
+                  <option value="stockfish">Stockfish</option>
+                  <option value="custom">Custom...</option>
+                </select>
+              </div>
+
+              <div class="engine-row">
+                <label>Black</label>
+
+                <select id="black-engine">
+                  <option value="builtin">Chanakya (built-in)</option>
+                  <option value="stockfish">Stockfish</option>
+                  <option value="custom">Custom...</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p class="label">Opening Book</p>
+
+            <div class="engine-section">
+              <div class="engine-row">
+                <label>White</label>
+
+                <select id="white-book">
+                  <option>None</option>
+                </select>
+              </div>
+
+              <div class="engine-row">
+                <label>Black</label>
+
+                <select id="black-book">
+                  <option>None</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- ENGINES -->
+        <!-- ================================================= -->
+
+        <div class="dialog-content tab-panel" id="tab-engines">
+          <div>
+            <div class="section-header">
+              <p class="label">Loaded Engines</p>
+
+              <button id="add-engine-btn" class="btn secondary">
+                Add UCI Engine
+              </button>
+            </div>
+            <p class="error" id="engine-error"></p>
+          </div>
+
+          <!-- will added dynamically -->
+          <div class="list"></div>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- BOOKS -->
+        <!-- ================================================= -->
+
+        <div class="dialog-content tab-panel" id="tab-books">
+          <div>
+            <div class="section-header">
+              <p class="label">Opening Books</p>
+
+              <button class="btn secondary" id="add-book-btn">Add Book</button>
+            </div>
+            <p class="error" id="book-error"></p>
+          </div>
+
+          <!-- will added dynamically -->
+          <div class="list"></div>
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@
 
 const cache = {};
 let soundEnabled = true;
+let currentAudio = null;
 
 export function initSound() {
   const button = document.querySelector("#sound-toggle");
@@ -35,9 +36,25 @@ const load = (name) => {
 };
 
 export const play = (name) => {
+  if (!soundEnabled) return;
+
+  // Stop previous sound
+  if (currentAudio && currentAudio !== cache[name]) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+
   const audio = load(name);
+  currentAudio = audio;
+
   audio.currentTime = 0;
-  audio.play().catch(() => {}); // ignore autoplay policy errors
+  audio.play().catch(() => {});
+
+  audio.onended = () => {
+    if (currentAudio === audio) {
+      currentAudio = null;
+    }
+  };
 };
 
 // Preload all sounds up front
@@ -66,24 +83,28 @@ ALL.forEach(load);
 export const playMoveSound = (move, game, side) => {
   if (!soundEnabled) return;
 
-  // Primary sound based on move type
+  // Highest priority
+  if (game.inCheck()) {
+    play("move-check");
+    return;
+  }
+
   if (move.flags.includes("p")) {
     play("promote");
-  } else if (move.flags.includes("k") || move.flags.includes("q")) {
-    play("castle");
-  } else if (move.flags.includes("c") || move.flags.includes("e")) {
-    play("capture");
-    // If capture and check, play check after capture
-    if (game.inCheck()) {
-      setTimeout(() => play("move-check"), 200);
-    }
-  } else {
-    play("move-self");
-    // If normal move and check, play check after
-    if (game.inCheck()) {
-      setTimeout(() => play("move-check"), 200);
-    }
+    return;
   }
+
+  if (move.flags.includes("k") || move.flags.includes("q")) {
+    play("castle");
+    return;
+  }
+
+  if (move.flags.includes("c") || move.flags.includes("e")) {
+    play("capture");
+    return;
+  }
+
+  play("move-self");
 };
 
 export const playIllegal = () => soundEnabled && play("illegal");

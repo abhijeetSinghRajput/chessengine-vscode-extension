@@ -15,6 +15,7 @@ import {
   setOnMoveCallback,
   moves,
   getCurrentIndex,
+  getStartFen,
 } from "./history.js";
 import { game, resetGame, START_FEN } from "./game.js";
 import { BotController } from "./bot.js";
@@ -27,7 +28,7 @@ export class ChessUI {
     this._moveListeners = [];
 
     const getState = () => ({
-      fen: game.fen(),
+      fen: getStartFen(),
       uciMoves: this._uciMoveList(),
       turn: game.turn(),
     });
@@ -62,7 +63,6 @@ export class ChessUI {
 
   // Single reset function - delegates to game.js
   resetGame() {
-    clearGameEndBadges();
     this._loadPosition(START_FEN, true);
     notifyNewGame();
   }
