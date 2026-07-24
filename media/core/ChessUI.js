@@ -105,6 +105,8 @@ export class ChessUI {
     if (resetHistoryFlag) {
       resetHistory(game.fen());
     }
+    
+    renderPosition(game.fen());
   }
 
   async _executeMoveAndNotify(from, to, promotion) {
