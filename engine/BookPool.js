@@ -39,9 +39,7 @@ class BookPool {
 
   hasBookMove(bookPath, fen) {
     if (!bookPath) return false;
-    const has = this._getBook(bookPath).hasBookMove(fen);
-    console.log("hasBookMove", has);
-    return has;
+    return this._getBook(bookPath).hasBookMove(fen);
   }
 
   /** Drop a cached parse (e.g. after the book file is deleted/replaced). */

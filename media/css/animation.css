@@ -188,6 +188,13 @@
     color: #e02828
 }
 
+.animated-effect.black .icon{
+    color: black;
+}
+.animated-effect.white .icon{
+    color: white;
+}
+
 .resignblack.icon-background,
 .resignblack.flying-points,
 .resignwhite.icon-background,

@@ -84,24 +84,24 @@ export const playMoveSound = (move, game, side) => {
   if (!soundEnabled) return;
 
   // Highest priority
+  if(game.isGameOver()){
+    return play("game-end");
+  }
+
   if (game.inCheck()) {
-    play("move-check");
-    return;
+    return play("move-check");
   }
 
   if (move.flags.includes("p")) {
-    play("promote");
-    return;
+    return play("promote");
   }
 
   if (move.flags.includes("k") || move.flags.includes("q")) {
-    play("castle");
-    return;
+    return play("castle");
   }
 
   if (move.flags.includes("c") || move.flags.includes("e")) {
-    play("capture");
-    return;
+    return play("capture");
   }
 
   play("move-self");
