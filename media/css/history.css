@@ -11,7 +11,7 @@
   display: flex;
   flex-direction: column;
   height: min(560px, 90vw, 90svh);
-  background: #1e1e1e;
+  background: var(--sidebar);
   overflow: hidden;
   flex-shrink: 0;
   user-select: none;
@@ -58,7 +58,7 @@
 .move-btn {
   all: unset;
   cursor: pointer;
-  color: #ccc;
+  color: var(--muted-foreground);
   font-size: 13.5px;
   font-weight: 500;
   padding: 4px 6px;
@@ -73,7 +73,7 @@
 
 .move-btn:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--primary);
 }
 
 .move-btn.active {
@@ -95,8 +95,8 @@
   justify-content: center;
   gap: 8px;
   padding: 6px;
-  border-top: 1px solid #2e2e2e;
-  background: #181818;
+  border-top: 1px solid var(--border);
+  background: var(--sidebar-accent);
 }
 
 .nav-btn {

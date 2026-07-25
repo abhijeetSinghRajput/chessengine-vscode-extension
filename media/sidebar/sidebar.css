@@ -140,13 +140,14 @@ input#sidebar-fen-input:focus {
   width: 100%;
 }
 
-.btn.primary {
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
+button.primary {
+  background-color: #83b84f;
+  color: white;
 }
 
-.btn.primary:hover:not(:disabled) {
-  background: var(--vscode-button-hoverBackground);
+button.primary:not(:disabled):hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 16px 0 #aef46721;
 }
 
 .btn.primary:disabled {
@@ -181,35 +182,35 @@ input#sidebar-fen-input:focus {
 /* ── History ────────────────────────────────────────────────────── */
 /* ---------- History ---------- */
 
-#tab-history{
+#tab-history {
   padding: 0;
   background-color: var(--vscode-editor-background);
 }
 
 .history-actions {
-    display: flex;
-    gap: 4px;
-    justify-content: space-between;
-    background-color: var(--vscode-editorWidget-background);
-    align-items: center;
-    padding: 8px 12px;
-    margin-bottom: 3px;
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  background-color: var(--vscode-editorWidget-background);
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 3px;
 }
 
 .history-actions .btn {
-    height: 24px;
+  height: 24px;
 }
 
 .history-actions .btn.icon {
-    padding: 4px;
-    height: 24px;
-    width: 24px;
+  padding: 4px;
+  height: 24px;
+  width: 24px;
 }
 
 .history-btn-group {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 #history-list {
@@ -220,9 +221,9 @@ input#sidebar-fen-input:focus {
 
 .history-card {
   position: relative;
-  
+
   padding: 10px 12px;
-  
+
   background: var(--vscode-editorWidget-background);
 
   cursor: pointer;
@@ -261,7 +262,7 @@ input#sidebar-fen-input:focus {
   opacity: 0.35;
 }
 
-.history-avatar{
+.history-avatar {
   width: 24px;
   border-radius: 4px;
   aspect-ratio: 1;
@@ -297,13 +298,13 @@ input#sidebar-fen-input:focus {
 }
 
 .history-winner {
-    display: flex;
-    gap: 6px;
-    align-items: center;
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 .history-winner.winner {
-    color: #83b84f;
+  color: #83b84f;
 }
 
 .history-winner svg {
