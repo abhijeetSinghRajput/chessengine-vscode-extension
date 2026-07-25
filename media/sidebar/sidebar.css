@@ -140,6 +140,14 @@ input#sidebar-fen-input:focus {
   width: 100%;
 }
 
+#sidebar-newgame-btn{
+    height: 40px;
+    border-radius: 6px;
+    border-top: 3px solid hsl(90 43% 41% / 1);
+    font-size: 16px;
+    font-weight: 600;
+}
+
 button.primary {
   background-color: #83b84f;
   color: white;

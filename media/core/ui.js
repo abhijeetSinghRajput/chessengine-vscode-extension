@@ -30,14 +30,26 @@ export function setThinking(color, on) {
 
 const themeButtons = document.querySelectorAll("button[data-theme]");
 
+const THEME_STORAGE_KEY = "chess-theme";
+
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+
+  themeButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.theme === theme);
+  });
+
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
+}
+
+// Restore saved theme
+const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "default";
+
+setTheme(savedTheme);
+
 themeButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    const theme = button.dataset.theme;
-    document.documentElement.setAttribute("data-theme", theme);
-
-    // Optional: highlight selected button
-    themeButtons.forEach((btn) => btn.classList.remove("active"));
-    button.classList.add("active");
+    setTheme(button.dataset.theme);
   });
 });
 

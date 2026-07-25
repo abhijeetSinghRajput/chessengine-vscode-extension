@@ -160,6 +160,7 @@ const jumpTo = (index) => {
   if (index >= 0) {
     const last = moves[index];
     setLastMoveMark(last.from, last.to);
+    updateBookMove(last.to);
     playMoveSound(last, game, last.color);
   }
 

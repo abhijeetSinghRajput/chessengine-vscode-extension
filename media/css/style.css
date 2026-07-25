@@ -15,6 +15,7 @@
   --destructive: #e02828;
   --sidebar: #262522;
   --sidebar-accent: #21201d;
+  --popover-header: #1b1917;
   --popover: #21201d;
   --muted: #939291;
   --muted-foreground: #c3c2c1;
@@ -579,7 +580,7 @@ select {
 .dialog-header {
   padding: 20px 24px 12px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background-color: var(--sidebar-accent);
+  background-color: var(--popover-header);
   text-transform: capitalize;
   font-weight: 600;
   display: flex;
