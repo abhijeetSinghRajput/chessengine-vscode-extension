@@ -152,7 +152,7 @@ const jumpTo = (index) => {
     makeMove(m.from, m.to, m.promotion);
   }
   currentIndex = index;
-
+  console.log(currentIndex);
   renderPosition(game.fen()); // one full snap — cheap (32 DOM nodes, no anim)
   clearAllMarks();
   updateCheckHighlight();
@@ -162,6 +162,9 @@ const jumpTo = (index) => {
     setLastMoveMark(last.from, last.to);
     updateBookMove(last.to);
     playMoveSound(last, game, last.color);
+  }
+  else {
+    effectSquare.dataset.square = "";
   }
 
   updateActiveHighlight();
@@ -448,5 +451,6 @@ export const buildHistoryFromMoves = (verboseMoves, fen = START_FEN) => {
 
   if (currentIndex >= 0) {
     setLastMoveMark(moves[currentIndex].from, moves[currentIndex].to);
+    updateBookMove(moves[currentIndex].to);
   }
 };
