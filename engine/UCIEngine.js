@@ -24,6 +24,7 @@
   const { EventEmitter } = require("events");
   const path = require("path");
   const { EngineLogger } = require("./EngineLogger");
+  const DEBUG = false;
 
   class UCIEngine extends EventEmitter {
     /**
@@ -51,7 +52,7 @@
           this.proc = spawn(this.enginePath, this.args, {
             cwd: require("path").dirname(this.enginePath),
           });
-          this.logger.event(`Spawned ${this.enginePath}`);
+          DEBUG && this.logger.event(`Spawned ${this.enginePath}`);
         } catch (err) {
           return reject(
             new Error(
@@ -62,12 +63,12 @@
 
         this.proc.on("error", (err) => {
           this.emit("error", err);
-          this.logger.error(err.stack);
+          DEBUG && this.logger.error(err.stack);
           reject(err);
         });
 
         this.proc.on("exit", (code, signal) => {
-          this.logger.event(`Engine exited code=${code} signal=${signal}`);
+          DEBUG && this.logger.event(`Engine exited code=${code} signal=${signal}`);
 
           this.ready = false;
           this.emit("exit", { code, signal });
@@ -79,7 +80,7 @@
         this.proc.stderr.setEncoding("utf8");
 
         this.proc.stderr.on("data", (chunk) => {
-          this.logger.error(chunk.toString().trim());
+          DEBUG && this.logger.error(chunk.toString().trim());
         });
 
         this._send("uci");
@@ -298,7 +299,7 @@
     _send(cmd) {
       if (!this.proc || !this.proc.stdin.writable) return;
 
-      this.logger.send(cmd);
+      DEBUG && this.logger.send(cmd);
 
       this.proc.stdin.write(cmd + "\n");
     }
@@ -312,7 +313,7 @@
         if (!line.length) continue;
 
         const trimmed = line.trim();
-        this.logger.recv(trimmed);
+        DEBUG && this.logger.recv(trimmed);
         if (trimmed.startsWith("info")) {
           const info = this.parseInfoLine(trimmed);
           this.emit("info", info);
